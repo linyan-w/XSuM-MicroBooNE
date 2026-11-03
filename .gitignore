@@ -1,0 +1,20 @@
+# data and outputs never go in the repository (one open-sample file is 11 GB)
+*.h5
+*.hdf5
+*.part
+*.root
+*.parquet
+*.npz
+*.pkl
+*.log
+data/
+reports/
+runs/
+outputs/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+*.egg-info/
+# the small example file for the tests is kept
+!tests/data/*.h5

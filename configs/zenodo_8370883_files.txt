@@ -1,0 +1,21 @@
+# MicroBooNE BNB Inclusive Overlay Sample (No Wire Info): Zenodo record 8370883 (doi 10.5281/zenodo.8370883), cc-by-4.0.
+# Generated from https://zenodo.org/api/records/8370883 by scripts/curate/fetch_zenodo.py --manifest-update. Columns: name size_bytes md5 url
+BNB_All_NoWire_00.h5  11031250577  5b76ac08784a9ceff6bda81697a65de8  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_00.h5/content
+BNB_All_NoWire_01.h5  11116744542  f5f542ecdd05ab2464872c458e7d86ae  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_01.h5/content
+BNB_All_NoWire_02.h5  11087687593  9f4f82f44cda339b66c31a2d7d37cb24  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_02.h5/content
+BNB_All_NoWire_03.h5  10474168303  f2248cfa2d45c40b54cb959c2b9ae041  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_03.h5/content
+BNB_All_NoWire_04.h5  10976679221  457e21abf207ef7ce29d689ffc31c80e  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_04.h5/content
+BNB_All_NoWire_05.h5  10521950546  d354768808d665fe934c39184dfeafeb  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_05.h5/content
+BNB_All_NoWire_06.h5  11013888374  ca63883abb2bf25835a9fa3bbd5620ae  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_06.h5/content
+BNB_All_NoWire_07.h5  10475258320  106c7544dd3799346204ccae3596a335  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_07.h5/content
+BNB_All_NoWire_08.h5  10789299158  8f005ca7bb4e4ab669f597967d0e4c07  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_08.h5/content
+BNB_All_NoWire_09.h5  10986852219  1ce53c50f98ef446768edda9366307de  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_09.h5/content
+BNB_All_NoWire_10.h5  10306098758  19c80307c32b3125ca0e394eb1b4d722  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_10.h5/content
+BNB_All_NoWire_11.h5  11006715076  8ac56fca2759c5c16bfa15c874b4bfa4  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_11.h5/content
+BNB_All_NoWire_12.h5  10941589064  b588ad82ba8d07bb887559faf2df5e0f  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_12.h5/content
+BNB_All_NoWire_13.h5  10918915088  821f7e2477627f791549726c1b5fe2cd  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_13.h5/content
+BNB_All_NoWire_14.h5  10634762474  497c4f5a81b645d95760948d5554b591  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_14.h5/content
+BNB_All_NoWire_15.h5  11138224240  e9fa28ae78a643a499c61c336caca75e  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_15.h5/content
+BNB_All_NoWire_16.h5  10808437565  22ae96575057ea908c9d2829e6ce4835  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_16.h5/content
+BNB_All_NoWire_17.h5  10643880129  db15b6551b4aa91d6cf967a39667db5b  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_17.h5/content
+public-artroot-bnb-all.list  8503728  3c77525f91bb9a2c7db0e59304b1ee46  https://zenodo.org/api/records/8370883/files/public-artroot-bnb-all.list/content

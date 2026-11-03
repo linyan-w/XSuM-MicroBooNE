@@ -1,0 +1,14 @@
+# Python >= 3.9. Create the environment with: bash scripts/setup_env.sh
+numpy>=1.26,<2.1
+h5py>=3.10
+fsspec>=2024.6
+aiohttp>=3.9
+awkward>=2.8,<3
+pyarrow>=17
+pandas>=2.0
+torch>=2.8,<2.9
+matplotlib>=3.8
+scipy>=1.13
+scikit-learn>=1.5
+tqdm
+pytest>=8
