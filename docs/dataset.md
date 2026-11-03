@@ -83,5 +83,8 @@ flow for the slice-level continuous quantities and a prong set flow for the PFPa
   at a time), and the disk budget for doing so: the machine has about 30 GB free, one file is 11 GB.
 - **The 20% of out-of-volume events with a "neutrino" slice.** They are cosmic slices; the surrogate must either model
   them (a wrong-slice class with a vertex drawn from the cosmic distribution) or be restricted to the active volume.
+- **Events without particle rows.** 17% of events have no `particle_table` rows at all (13% of the 300-event
+  example, all with the vertex outside the active volume, most of them CC): Geant4 particles are recorded only when the
+  interaction's products reach the TPC region. For the surrogate they are Truth-only events with an empty input set.
 - **Split.** Events are grouped by run and subrun (120 subruns in the first 2000 events of one file); split by subrun
   as in MINERvA so that overlay-correlated readouts stay together.
