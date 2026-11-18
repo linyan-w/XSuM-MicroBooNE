@@ -1,4 +1,4 @@
-"""The tables and columns the surrogate work reads from the NoWire files (docs/h5_content.md); hit-level tables are
+"""The tables and columns the surrogate work reads from the NoWire files (docs/technote, Appendix A); hit-level tables are
 read only by the curation step that derives per-PFP charge (not yet written)."""
 
 EVENT_COLUMNS = ["event_id", "is_cc", "lep_energy", "nu_dir", "nu_energy", "nu_pdg", "nu_vtx", "nu_vtx_corr",

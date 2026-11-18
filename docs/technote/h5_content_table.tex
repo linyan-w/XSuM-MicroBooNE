@@ -1,0 +1,118 @@
+\begin{longtable}{@{}p{34mm}p{10mm}p{7mm}p{100mm}@{}}
+\caption{Content of the open-sample HDF5 files, as documented by the collaboration (uboone/OpenSamples v02, \texttt{file-content-hdf5.md}; the \texttt{\#CHECK} marks are theirs). The \texttt{wire\_table} is absent from the NoWire files.}\label{tab:h5content}\\
+\toprule entry & type & $n$ & description\\ \midrule \endfirsthead
+\toprule entry & type & $n$ & description\\ \midrule \endhead
+\bottomrule \endfoot
+\addlinespace[3pt]\multicolumn{4}{@{}p{151mm}@{}}{\textbf{\texttt{/}} \quad Main entry point of the file.}\\
+\addlinespace[3pt]\multicolumn{4}{@{}p{151mm}@{}}{\textbf{\texttt{/event\_table}} \quad Table storing information about a single detector readout and a single simulated neutrino interaction.}\\
+\quad\texttt{event\_id} & dataset & 3 & Run/Subrun/Event number for a detector readout.\\
+\quad\texttt{event\_id.seq\_cnt} & dataset & 2 & Auxiliary information added in post-processing step for simple grouping and fast access of table entries separated by event.\\
+\quad\texttt{is\_cc} & dataset & 1 & If 1 the simulated neutrino interaction is charged-current, if 0 it is neutral-current.\\
+\quad\texttt{lep\_energy} & dataset & 1 & Simulated energy of the lepton outgoing from the neutrino interaction (in GeV).\\
+\quad\texttt{nu\_dir} & dataset & 3 & Initial direction of the simulated neutrino interacting in the detector (3D cartesian coordinates).\\
+\quad\texttt{nu\_energy} & dataset & 1 & Simulated energy of the interacting neutrino (in GeV).\\
+\quad\texttt{nu\_pdg} & dataset & 1 & Particle Data Group (PDG) particle code for the interacting neutrino. See \url{https://pdg.lbl.gov/2022/reviews/rpp2022-rev-monte-carlo-numbering.pdf.}\\
+\quad\texttt{nu\_vtx} & dataset & 3 & Simulated position of neutrino interaction (3D cartesian coordinates, in cm). This quantity is to be used to compare with e.g. the detector boundaries.\\
+\quad\texttt{nu\_vtx\_corr} & dataset & 3 & Simulated position of neutrino interaction (3D cartesian coordinates, in cm), after correcting for detector effects such as space charge. This is the quantity to be used for comparison with reconstructed information.\\
+\quad\texttt{nu\_vtx\_wire\_pos} & dataset & 3 & Simulated position of neutrino interaction (per-plane wire coordinates), after correcting for detector effects such as space charge. This is the quantity to be used for comparison with reconstructed information.\\
+\quad\texttt{nu\_vtx\_wire\_time} & dataset & 1 & Simulated time of neutrino interaction (in ns).\#CHECK\\
+\addlinespace[3pt]\multicolumn{4}{@{}p{151mm}@{}}{\textbf{\texttt{/hit\_table}} \quad Table storing information about reconstructed hits, i.e. Gaussian pulses detected on the wire waveform.}\\
+\quad\texttt{event\_id} & dataset & 3 & Run/Subrun/Event number, referring to entries in the event\_table.\\
+\quad\texttt{event\_id.seq\_cnt} & dataset & 2 & Auxiliary information added in post-processing step for simple grouping and fast access of table entries separated by event.\\
+\quad\texttt{hit\_id} & dataset & 1 & Index of this hit in the table, unique for a given event.\\
+\quad\texttt{integral} & dataset & 1 & Integral (amplitude) of the Gaussian, in ADC units. This quantity is proportional to the energy (ionization charge) deposited by particles in the argon.\\
+\quad\texttt{local\_plane} & dataset & 1 & Id of the plane where the wire is located. Plane 0 and 1 are induction planes with wire orientation +/-60 degress wrt vertical, plane 2 is the collection plane with vertical wire orientation.\\
+\quad\texttt{local\_time} & dataset & 1 & Peak time of the Gaussian pulse, in detector clock units (ticks).\\
+\quad\texttt{local\_wire} & dataset & 1 & Id of the wire where the hit is located. Plane 0 and 1 have ids in the range [0,2399], plane 2 in range [0,3455].\\
+\quad\texttt{rms} & dataset & 1 & Width of the Gaussian pulse, in detector clock units (ticks).\\
+\quad\texttt{tpc} & dataset & 1 & Id of the Time Projection Chamber where the planes are located. In MicroBooNE there is only 1 TPC so this should be always 0.\\
+\addlinespace[3pt]\multicolumn{4}{@{}p{151mm}@{}}{\textbf{\texttt{/edep\_table}} \quad Table storing the simulated (true) energy deposit information in the TPC.}\\
+\quad\texttt{energy} & dataset & 1 & Deposited energy.\\
+\quad\texttt{energy\_fraction} & dataset & 1 & Fraction of the hit energy corresponding to this deposity.\\
+\quad\texttt{event\_id} & dataset & 3 & Run/Subrun/Event number, referring to entries in the event\_table.\\
+\quad\texttt{event\_id.seq\_cnt} & dataset & 2 & Auxiliary information added in post-processing step for simple grouping and fast access of table entries separated by event.\\
+\quad\texttt{g4\_id} & dataset & 1 & Id of the simulated particle that originated this deposit. This index refers to entries in the particle\_table.\\
+\quad\texttt{hit\_id} & dataset & 1 & Id of the hit this deposit contributes to. This index refers to entries in the hit\_table.\\
+\addlinespace[3pt]\multicolumn{4}{@{}p{151mm}@{}}{\textbf{\texttt{/particle\_table}} \quad Table storing information about particles simulated by Geant4 (\url{https://geant4.web.cern.ch/}) as they propagate through in the liquid argon of the detector. In this dataset only the neutrino interaction is simulated, and it is overlaid to cosmics from real data (taken with beam off).}\\
+\quad\texttt{category} & dataset & 1 & Category of this particle (semantic label). See enum "category" definition in detector\_utils.py.\\
+\quad\texttt{end\_position} & dataset & 3 & End position of the simulated particle (3D cartesian coordinates, in cm). This quantity is to be used to compare with e.g. the detector boundaries.\\
+\quad\texttt{end\_position\_corr} & dataset & 3 & End position of the simulated particle (3D cartesian coordinates, in cm), after correcting for detector effects such as space charge. This is the quantity to be used for comparison with reconstructed information.\\
+\quad\texttt{end\_process} & dataset & 1 & Physics process that terminated the current particle. Format is a string.\\
+\quad\texttt{end\_wire\_pos} & dataset & 3 & End position of the simulated particle (per-plane wire coordinates), after correcting for detector effects such as space charge. This is the quantity to be used for comparison with reconstructed information.\\
+\quad\texttt{end\_wire\_time} & dataset & 1 & End time of the simulated particle, in detector clock units (ticks).\\
+\quad\texttt{event\_id} & dataset & 3 & Run/Subrun/Event number, referring to entries in the event\_table.\\
+\quad\texttt{event\_id.seq\_cnt} & dataset & 2 & Auxiliary information added in post-processing step for simple grouping and fast access of table entries separated by event.\\
+\quad\texttt{g4\_id} & dataset & 1 & Id of this particle in the table (as used internally by Geant4), unique for a given event.\\
+\quad\texttt{g4\_pdg} & dataset & 1 & Particle Data Group (PDG) particle code for the simulated particle.\\
+\quad\texttt{instance} & dataset & 1 & Particle instance counting. Only certain categories are counted: pion, muon, kaon, proton, electron, michel, photon.\\
+\quad\texttt{momentum} & dataset & 1 & Momentum of the simulated particle (in GeV). \#CHECK\\
+\quad\texttt{parent\_id} & dataset & 1 & Id of the parent particle that generated the current one (via decay, interaction, or other processes). The index refers to the g4\_id in this same table (for the same event\_id). Index -1 refers to particles that are coming into the detector (e.g. neutrinos from the beam).\\
+\quad\texttt{start\_position} & dataset & 3 & Start position of the simulated particle (3D cartesian coordinates, in cm). This quantity is to be used to compare with e.g. the detector boundaries.\\
+\quad\texttt{start\_position\_corr} & dataset & 3 & Start position of the simulated particle (3D cartesian coordinates, in cm), after correcting for detector effects such as space charge. This is the quantity to be used for comparison with reconstructed information.\\
+\quad\texttt{start\_process} & dataset & 1 & Physics process that originated the current particle. Format is a string. Here "Primary" has a different meaning than what used in the pandoraPrimary table, and refers to particles directly emerging from the neutrino-nucleus interaction (as opposed to those decaying or interacting in the argon).\\
+\quad\texttt{start\_wire\_pos} & dataset & 3 & Start position of the simulated particle (per-plane wire coordinates), after correcting for detector effects such as space charge. This is the quantity to be used for comparison with reconstructed information.\\
+\quad\texttt{start\_wire\_time} & dataset & 1 & Start time of the simulated particle, in detector clock units (ticks).\\
+\addlinespace[3pt]\multicolumn{4}{@{}p{151mm}@{}}{\textbf{\texttt{/opflash\_table}} \quad Table storing information about reconstructed flashes of light detected by the photomultiplier tubes (PMTs) in coincence with the beam.}\\
+\quad\texttt{event\_id} & dataset & 3 & Run/Subrun/Event number, referring to entries in the event\_table.\\
+\quad\texttt{event\_id.seq\_cnt} & dataset & 2 & Auxiliary information added in post-processing step for simple grouping and fast access of table entries separated by event.\\
+\quad\texttt{flash\_id} & dataset & 1 & Index of this flash in the table, unique for a given event.\\
+\quad\texttt{time} & dataset & 1 & Time of this flash (in µs).\\
+\quad\texttt{time\_width} & dataset & 1 & Width of the flash time.\\
+\quad\texttt{totalpe} & dataset & 1 & Total number of PE in the flash.\\
+\quad\texttt{wire\_pos} & dataset & 3 & Barycenter PE position of the flash (per-plane wire coordinates). Obtained by weighting the position of each PMT by its PE in the flash.\\
+\quad\texttt{y\_center} & dataset & 1 & Barycenter position of the flash in the Y cartesian coordinate (vertical, parallel to plane 2 wires). Obtained by weighting the position of each PMT by its PE in the flash.\\
+\quad\texttt{y\_width} & dataset & 1 & Width (RMS) of the Y position.\\
+\quad\texttt{z\_center} & dataset & 1 & Barycenter position of the flash in the Z cartesian coordinate (longitudinal to the beam, orthogonal to plane 2 wires). Obtained by weighting the position of each PMT by its PE in the flash.\\
+\quad\texttt{z\_width} & dataset & 1 & Width (RMS) of the Z position.\\
+\addlinespace[3pt]\multicolumn{4}{@{}p{151mm}@{}}{\textbf{\texttt{/opflashsumpe\_table}} \quad Number of photoelectrons (PE) recorded by a flash in each of the 32 PMT. This quantity combines contributions from multiple OpHits and is after calibration and pedestal subtraction.}\\
+\quad\texttt{event\_id} & dataset & 3 & Run/Subrun/Event number, referring to entries in the event\_table.\\
+\quad\texttt{event\_id.seq\_cnt} & dataset & 2 & Auxiliary information added in post-processing step for simple grouping and fast access of table entries separated by event.\\
+\quad\texttt{flash\_id} & dataset & 1 & Id of the flash to which this quantity refers to, referring to entries in the opflash\_table.\\
+\quad\texttt{pmt\_channel} & dataset & 1 & Id of the PMT from where the quantity comes from.\\
+\quad\texttt{sumpe} & dataset & 1 & Value of the PE sum.\\
+\quad\texttt{sumpe\_id} & dataset & 1 & Index of this entry in the table, unique for a given event.\\
+\addlinespace[3pt]\multicolumn{4}{@{}p{151mm}@{}}{\textbf{\texttt{/ophit\_table}} \quad Table storing information about reconstructed hits in the optical detectors, i.e. Gaussian pulses detected on the photomultiplier tube (PMT) waveform.}\\
+\quad\texttt{amplitude} & dataset & 1 & Amplitude of the Gaussian pulse, in ADC units. \#CHECK\\
+\quad\texttt{area} & dataset & 1 & Area of the Gaussian curve. \#CHECK units\\
+\quad\texttt{event\_id} & dataset & 3 & Run/Subrun/Event number, referring to entries in the event\_table.\\
+\quad\texttt{event\_id.seq\_cnt} & dataset & 2 & Auxiliary information added in post-processing step for simple grouping and fast access of table entries separated by event.\\
+\quad\texttt{hit\_channel} & dataset & 1 & Id of the PMT where the OpHit is located.\\
+\quad\texttt{hit\_id} & dataset & 1 & Index of this ophit in the table, unique for a given event.\\
+\quad\texttt{pe} & dataset & 1 & Number of photoelectrons (PE) detected in this hit. This quantity is before calibration and pedestal subtraction.\\
+\quad\texttt{peaktime} & dataset & 1 & Peak time of the Gaussian pulse, in detector clock units (ticks).\#CHECK\\
+\quad\texttt{sumpe\_id} & dataset & 1 & Id of the "sum PE" to which this OpHit contributes to, referring to entries in the opflashsumpe\_table. If -1, then the OpHit is not used in any sum PE nor in any flash.\\
+\quad\texttt{width} & dataset & 1 & Width of the Gaussian pulse, in detector clock units (ticks).\#CHECK\\
+\quad\texttt{wire\_pos} & dataset & 3 & Position of the PMT (in per-plane wire coordinates).\\
+\addlinespace[3pt]\multicolumn{4}{@{}p{151mm}@{}}{\textbf{\texttt{/pandoraHit\_table}} \quad Table storing information about how hits are classified and clustered by Pandora.}\\
+\quad\texttt{event\_id} & dataset & 3 & Run/Subrun/Event number, referring to entries in the event\_table.\\
+\quad\texttt{event\_id.seq\_cnt} & dataset & 2 & Auxiliary information added in post-processing step for simple grouping and fast access of table entries separated by event.\\
+\quad\texttt{hit\_id} & dataset & 1 & Id of the hit this entry refers to. This index refers to entries in the hit\_table.\\
+\quad\texttt{pfp\_id} & dataset & 1 & Id of the PFP this entry refers to. This index refers to entries in the pandoraPfp\_table.\\
+\quad\texttt{slice\_id} & dataset & 1 & Id of the slice this entry refers to. This index refers to entries in the pandoraPrimary\_table.\\
+\addlinespace[3pt]\multicolumn{4}{@{}p{151mm}@{}}{\textbf{\texttt{/pandoraPfp\_table}} \quad Table storing information about PFParticles, i.e. clusters of hits in the wire planes that are matched in 3D. This is limited to PFParticles that Pandora classifies as originating from the neutrino interaction.}\\
+\quad\texttt{event\_id} & dataset & 3 & Run/Subrun/Event number, referring to entries in the event\_table.\\
+\quad\texttt{event\_id.seq\_cnt} & dataset & 2 & Auxiliary information added in post-processing step for simple grouping and fast access of table entries separated by event.\\
+\quad\texttt{pfp\_id} & dataset & 1 & Index of this PFP in the table, unique for a given event.\#CHECK what about a given slice?\\
+\quad\texttt{pfp\_pdg} & dataset & 1 & Particle Data Group (PDG) particle code for the PFP. Only two values are used: 11 (electron, i.e. shower-like PFP) and 13 (muon, i.e. track-like PFP).\\
+\quad\texttt{trkshr\_score} & dataset & 1 & Discriminator for classifiying the PFP as track-like (values \textgreater{}0.5) or shower-like (values \textless{}0.5).\\
+\quad\texttt{vtx} & dataset & 3 & Vertex (i.e. starting point) position of the PFP (3D cartesian coordinates, in cm).\\
+\quad\texttt{vtx\_wire\_pos} & dataset & 3 & Vertex (i.e. starting point) position of the PFP (per-plane wire coordinates).\\
+\quad\texttt{vtx\_wire\_time} & dataset & 1 & Time of the PFP vertex, in detector clock units (ticks).\\
+\addlinespace[3pt]\multicolumn{4}{@{}p{151mm}@{}}{\textbf{\texttt{/pandoraPrimary\_table}} \quad Table storing information about particles initiating an interaction (primary) in the detector as identified by Pandora. These could be cosmic rays entering the detector or neutrinos in the beam.}\\
+\quad\texttt{event\_id} & dataset & 3 & Run/Subrun/Event number, referring to entries in the event\_table.\\
+\quad\texttt{event\_id.seq\_cnt} & dataset & 2 & Auxiliary information added in post-processing step for simple grouping and fast access of table entries separated by event.\\
+\quad\texttt{flashmatch\_score} & dataset & 1 & Discriminator for matching the interaction initiated by this primary (as detected in the TPC by Pandora) with the beam flash. Lower values indicate a better match.\\
+\quad\texttt{nu\_score} & dataset & 1 & Discriminator to separate interactions initiated by neutrinos (values close to 1) vs those initiated by cosmics (values close to 0), based on the TPC information reconstructed by Pandora.\\
+\quad\texttt{slice\_id} & dataset & 1 & Id of the slice where the primary PFP is located. The id is per event, but not necessarily unique in terms of primary PFP. Pandora separates TPC hits in different time slices. Each slice contains hits from different planes. Typically each slice contains one interaction (i.e. one primary), but in some cases moren than one cosmic primary are grouped in the same slice. Neutrino primary PFP are always the only primary in their slice.\\
+\quad\texttt{slice\_pdg} & dataset & 1 & Particle Data Group (PDG) particle code for the Primary PFP. Only three values are used: 12 (electron neutrino), 13 (muon, used for cosmics), and 14 (muon neutrino).\\
+\quad\texttt{vtx} & dataset & 3 & Vertex (i.e. interaction point) position of the Primary PFP (3D cartesian coordinates, in cm).\\
+\quad\texttt{vtx\_wire\_pos} & dataset & 3 & Vertex (i.e. interaction point) position of the Primary PFP (per-plane wire coordinates).\\
+\quad\texttt{vtx\_wire\_time} & dataset & 1 & Time of the Primary PFP vertex, in detector clock units (ticks).\\
+\addlinespace[3pt]\multicolumn{4}{@{}p{151mm}@{}}{\textbf{\texttt{/wire\_table}} \quad Table storing information about the waveform recorded at each Wire. This information is only available in the samples labeled as "With Wire".}\\
+\quad\texttt{adc} & dataset & 6400 & Value of the waveform amplitude, as measured at the analog-to-digital converter (ADC), at each of the 6400 time ticks that are saved.\\
+\quad\texttt{event\_id} & dataset & 3 & Run/Subrun/Event number, referring to entries in the event\_table.\\
+\quad\texttt{event\_id.seq\_cnt} & dataset & 2 & Auxiliary information added in post-processing step for simple grouping and fast access of table entries separated by event.\\
+\quad\texttt{local\_plane} & dataset & 1 & Id of the plane where the wire is located. Plane 0 and 1 are induction planes with wire orientation +/-60 degress wrt vertical, plane 2 is the collection plane with vertical wire orientation.\\
+\quad\texttt{local\_wire} & dataset & 1 & Id of the wire where the hit is located. Plane 0 and 1 have ids in the range [0,2399], plane 2 in range [0,3455].\\
+\quad\texttt{tpc} & dataset & 1 & Id of the Time Projection Chamber where the planes are located. In MicroBooNE there is only 1 TPC so this should be always 0.\\
+\end{longtable}

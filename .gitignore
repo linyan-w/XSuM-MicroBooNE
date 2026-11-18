@@ -18,3 +18,10 @@ __pycache__/
 *.egg-info/
 # the small example file for the tests is kept
 !tests/data/*.h5
+# LaTeX build products of the technote (the PDFs are kept)
+*.aux
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz

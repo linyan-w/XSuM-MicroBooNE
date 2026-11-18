@@ -25,7 +25,7 @@ def test_slim_round_trip(sample, tmp_path):
     assert np.array_equal(ak.to_numpy(r["n_pfp"]), sample.counts("pandoraPfp_table")[ei])
     assert ak.all(ak.num(r["pfp_pdg"]) == r["n_pfp"])
     assert np.array_equal(ak.to_numpy(ak.num(t["prim_pdg"])), ak.to_numpy(t["n_prim"]))
-    # some events have no primary above the cut (and 17% of events have no particle rows at all, docs/dataset.md),
+    # some events have no primary above the cut (and 17% of events have no particle rows at all, docs/technote Table 4),
     # with or without a slice; the flash columns are NaN exactly where no flash was found
     assert ak.sum(t["n_prim"] == 0) > 0
     assert np.array_equal(np.isnan(ak.to_numpy(r["flash_time"])), ~ak.to_numpy(r["flash_found"]))

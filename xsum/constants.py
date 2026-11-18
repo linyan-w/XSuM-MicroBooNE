@@ -1,6 +1,6 @@
 """MicroBooNE conventions used across the package. Units of the open-sample HDF5 files: GeV, cm, ticks, PE.
 
-Sources: uboone/OpenSamples v02 (microboone_utils.py, file-content-hdf5.md) and the measurements in docs/h5_notes.md.
+Sources: uboone/OpenSamples v02 (microboone_utils.py, file-content-hdf5.md) and the measurements in docs/technote (Section 4).
 """
 import numpy as np
 
@@ -23,7 +23,7 @@ ACTIVE_Z = (10.0, 1036.0)
 TIME2CM = 0.0548965   # cm per tick (sampling x drift velocity)
 TRIG_OFFSET_TICKS = 800
 
-# Beam window of the optical flash (us): the BNB spill, after which cosmic flashes dominate (docs/h5_notes.md)
+# Beam window of the optical flash (us): the BNB spill, after which cosmic flashes dominate (docs/technote, Table 5)
 BEAM_WINDOW_US = (3.0, 5.0)
 
 # Sentinels of the Pandora tables
