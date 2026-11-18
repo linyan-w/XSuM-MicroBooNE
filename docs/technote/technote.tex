@@ -246,6 +246,17 @@ vector, which exists only in the artroot files (\code{MCParticle} at the start o
 companion file (Section~\ref{sec:open}). The \code{category} and \code{instance} columns are Geant4 bookkeeping and are
 not used.
 
+The start and end positions are those of the primary's own Geant4 trajectory, not of what it produces: an electron's
+end is where the electron stops after its bremsstrahlung, a photon's is its conversion or Compton point, a neutron's
+its first inelastic interaction, and a shower lives in the daughters (also in the table, with their parent id and
+start process). Inside the active volume the median displacement is 254\,cm for muons, 21\,cm for charged pions,
+32\,cm for neutrons, 27\,cm for electrons, 14\,cm for photons and 2.6\,cm for protons (a third of which move less
+than 1\,cm, so their direction is the noisiest). The neutral pion is the broken case: it decays at the vertex, \pct{42}
+have exactly zero displacement and all are under 1\,cm. Its direction is therefore rebuilt from its two decay photons,
+which the table holds as daughters with their own momenta and straight flights to their conversion points, as the
+momentum-weighted sum of the photons' directions (\code{xsum.prep.particles.pi0\_direction\_from\_daughters}).
+Neutral pions are \pct{2} of the primaries inside the volume.
+
 \subsection{Design}\label{sec:design}
 
 Figure~\ref{fig:model} is the proposed model, drawn in the layout of the XSuM-MINERvA schematic so that the two can be

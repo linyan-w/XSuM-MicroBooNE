@@ -32,3 +32,19 @@ def test_active_volume(sample):
     act = in_active_volume(ev["nu_vtx"])
     assert 0.2 < act.mean() < 0.7
     assert not in_active_volume(np.array([[-10.0, 0.0, 500.0]]))[0]
+
+
+def test_pi0_direction_from_daughters(sample):
+    """A neutral pion's direction comes from its decay photons; other species keep the displacement."""
+    from xsum.prep.particles import direction
+    parts = sample.read("particle_table")
+    sel = select_primaries(parts, ke_cut_gev=0.01)
+    pi = sel["pdg"] == 111
+    assert pi.sum() > 5
+    n = np.linalg.norm(sel["dir"][pi], axis=1)
+    assert (np.abs(n - 1) < 1e-5).mean() > 0.9                      # almost every pion now has a unit direction
+    disp = direction(sel["start"], sel["end"])
+    other = ~pi & (np.linalg.norm(disp, axis=1) > 0)
+    assert np.allclose(sel["dir"][other], disp[other])
+    # the photon directions dominate: the rebuilt direction is not the pion's own (tiny) displacement
+    assert np.mean(np.abs((sel["dir"][pi] * disp[pi]).sum(1)) < 0.999) > 0.3 or np.linalg.norm(disp[pi], axis=1).max() == 0
