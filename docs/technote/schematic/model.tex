@@ -29,13 +29,14 @@
 
 % ---------------- inputs and encoder (left column) ----------------
 \node[box, draw=cin, fill=cin!5, text width=74mm] (gen) {\textbf{Interaction}\\
-  true vertex $\vec v_\text{corr}=(x,y,z)$ [cm], space-charge corrected\\
-  \textbf{Geant4 primaries} (the generator's post-FSI final state)\\
-  species (14 classes, neutrons kept), kinetic energy $T\ge 10$\,MeV,\\
-  direction $\hat d$: start-to-end displacement (proxy) or the artroot momentum\\
+  true vertex $\vec v=(x,y,z)$ [cm] as generated (not space-charge corrected: a generator cannot supply that; the shift is learned in the vertex residual)\\
+  \textbf{Primaries} = the generator's post-FSI final state, as handed to Geant4\\
+  species (14 classes, neutrons kept), initial momentum $|\vec p|$ ($T\ge 10$\,MeV): generator-level\\
+  direction $\hat d$: generator-level only from the artroot initial momentum (companion file, required for
+  deployment); the HDF5 start-to-end displacement is a development stopgap that carries Geant4 propagation\\
   \emph{not} inputs: $E_\nu$, flavour, CC/NC, interaction mode (the detector sees only the particles; the lepton is a token like any other)};
 \node[box, same, text width=74mm, below=12mm of gen.south west, anchor=north west] (enc) {\textbf{Set encoder} (as XSuM-MINERvA)\\
-  transformer, 4 layers, $d{=}128$, 4 heads, global token carries $\vec v_\text{corr}$\\
+  transformer, 4 layers, $d{=}128$, 4 heads, global token carries $\vec v$\\
   permutation-invariant; an empty set (17\% of events) is the global token alone\\
   $\Rightarrow$ event embedding $z\in\mathbb{R}^{128}$, primary embeddings $h_i\in\mathbb{R}^{128}$};
 
@@ -49,7 +50,7 @@
 \node[head, same, below=8mm of orig.south west, anchor=north west] (card) {\textbf{PFParticle multiplicity head} (MLP on $z$), categorical (as the hadron multiplicity head)\\
   $p(N_\text{PFP}\mid z,\ \text{flags, origin})$, $N_\text{PFP}\in\{1,\dots,10\}$; sampled $N_\text{PFP}$ fixes the number of PFParticle tokens};
 \node[head, new, below=8mm of card.south west, anchor=north west] (ev) {\textbf{Event flow} (conditional flow matching, 9-d; the same flow class as XSuM-MINERvA, new columns)\\
-  matched slice: vertex residual $(\Delta x,\Delta y,\Delta z)$ [mm-scale core]; $\nu$ score (logit); flash-match score ($\log$)\\
+  matched slice: vertex residual $\vec v_\text{slice}-\vec v$ (3) [mm-scale core plus the space-charge shift, $\sim$1\,cm in $x$]; $\nu$ score (logit); flash-match score ($\log$)\\
   beam flash: $\log\text{PE}$, barycentre $y_\text{fl}$, $z_\text{fl}$ \quad conditioned on $z$, the flags, the origin and $N_\text{PFP}$\\
   wrong slice: vertex and scores drawn from the cosmic-slice pool of the open sample (as MINERvA's dead-time draw), not modelled};
 \node[head, wait, below=8mm of ev.south west, anchor=north west] (pf) {\textbf{PFParticle set flow} (masked flow matching, $N_\text{PFP}\times 9$; as the prong set flow)\\

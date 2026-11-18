@@ -120,7 +120,10 @@ table & rows & events & columns\\ \midrule
 
 \paragraph{Truth side.} \code{event\_table} holds the interaction: \code{nu\_pdg}, \code{nu\_energy}, \code{nu\_dir},
 \code{is\_cc}, \code{lep\_energy}, the true vertex \code{nu\_vtx} and the space-charge-corrected vertex
-\code{nu\_vtx\_corr}, which is the one to compare with the reconstruction. \code{particle\_table} holds the Geant4
+\code{nu\_vtx\_corr}, which is the one the collaboration compares with the reconstruction. For the surrogate the
+input is the true vertex: a generator cannot supply the corrected one, and the space-charge shift is a detector
+effect the model learns as part of the reconstructed-vertex residual; \code{nu\_vtx\_corr} is kept in the slim
+truth file for validation only. \code{particle\_table} holds the Geant4
 particles; the rows with \code{start\_process == "primary"} (parent 0) are the particles that emerge from the
 neutrino interaction, i.e.\ the generator's final state after final-state interactions as handed to Geant4, and are the
 surrogate's input. The table stores the momentum magnitude and the start and end positions, not the momentum vector.
@@ -229,15 +232,25 @@ are written and tested in the repository, the orange one is defined on paper onl
 blue box is the external sample, read in place.}\label{fig:schematic}
 \end{sidewaysfigure}
 
-\paragraph{Input} (one event): the space-charge-corrected vertex $\vec v_\text{corr}$ and the set of primaries
-above 10\,MeV kinetic energy with the outgoing neutrino of NC events dropped: class (14 classes,
-\code{xsum.constants.CLASS\_NAMES}), kinetic energy and direction, the latter from the start-to-end displacement until
-the artroot momenta are extracted. Neutrons are kept (they are the most common primary) and so are events outside the
+\paragraph{Input} (one event): the true vertex $\vec v$ as generated and the set of primaries above 10\,MeV kinetic
+energy with the outgoing neutrino of NC events dropped: class (14 classes, \code{xsum.constants.CLASS\_NAMES}),
+kinetic energy and direction. Neutrons are kept (they are the most common primary) and so are events outside the
 active volume and events with no primaries at all, which are Truth-only events with an empty input set. As in
 XSuM-MINERvA, generator-internal quantities ($E_\nu$, flavour, CC/NC, interaction mode) are not inputs: the detector
 sees only the particles, and the lepton is a token like any other, so the flavour and the current are in the set
 already. The slim truth file (\code{scripts/curate/slim.py}) holds all of this plus the event identifiers and an
 \code{in\_active\_volume} flag.
+
+\paragraph{What is generator-level and what is Geant4.} The input must contain nothing a generator cannot produce.
+Of the primary's columns, the species and the momentum magnitude are the particle's initial state, i.e.\ generator
+level; the start position is the vertex. The direction is the problem: the HDF5 files store no momentum vector, and the
+start-to-end displacement used as a proxy comes from Geant4 propagation, because the end point is where the track
+stopped, decayed or interacted. Only the unit vector is used, so the range is not leaked, but a track deflected by an
+elastic scatter, or one whose end coincides with its start (\pct{1.8} of primaries), carries Geant4 information into the
+input. The proxy is therefore a development stopgap: the deployed model must take the generator's initial momentum
+vector, which exists only in the artroot files (\code{MCParticle} at the start of the track), extracted once into a
+companion file (Section~\ref{sec:open}). The \code{category} and \code{instance} columns are Geant4 bookkeeping and are
+not used.
 
 \subsection{Design of the surrogate}\label{sec:design}
 
@@ -249,13 +262,14 @@ where MicroBooNE differs. Sampling goes top to bottom, every head conditioned on
 \item \textbf{Event flag heads}, two Bernoulli: Pandora selects a neutrino slice (\pct{39} of events), and a flash is
   found in the beam window (\pct{85}). The first is this sample's ``reconstructed'' flag and the efficiency numerator.
 \item \textbf{Slice origin head}, categorical given a slice: \emph{matched} (the slice is the neutrino's, vertex within
-  a few cm of the truth) or \emph{wrong} (a cosmic slice that Pandora labelled as the neutrino, the \pct{20} tail of
+  a few cm of the corrected truth) or \emph{wrong} (a cosmic slice that Pandora labelled as the neutrino, the \pct{20} tail of
   out-of-volume events and a smaller one inside). This is the mixture that Section~\ref{sec:measured} called for: the
   vertex residual of a matched slice has a millimetre core, the wrong slice has a vertex anywhere in the TPC. A
   Bernoulli for \code{slice\_pdg}~=~12 (Pandora's $\nu_e$ hypothesis) sits with it.
 \item \textbf{PFParticle multiplicity head}, categorical over 1--10, as the hadron multiplicity head of MINERvA.
-\item \textbf{Event flow}, a 9-dimensional conditional flow: for a matched slice the vertex residual (3), the
-  $\nu$ score and the flash-match score; for the beam flash its PE and $y$/$z$ barycentre. A wrong slice is not
+\item \textbf{Event flow}, a 9-dimensional conditional flow: for a matched slice the vertex residual
+  $\vec v_\text{slice}-\vec v$ (3), which contains the space-charge shift (about 1\,cm in $x$, up to 5--11\,cm) on top
+  of the millimetre resolution, the $\nu$ score and the flash-match score; for the beam flash its PE and $y$/$z$ barycentre. A wrong slice is not
   modelled: its vertex and scores are drawn from the open sample's pool of cosmic slices, the way MINERvA's dead-time
   variable was drawn, because they carry no information about the interaction.
 \item \textbf{PFParticle set flow}, a masked flow over the $N_\text{PFP}$ tokens with cross-attention to the primary
@@ -291,9 +305,11 @@ are new for MicroBooNE, the dashed part waits on the hit-level curation. Nothing
 \section{Open questions}\label{sec:open}
 
 \begin{enumerate}[nosep]
-\item \textbf{Direction of the primaries.} Whether the start-to-end proxy is good enough, or whether the artroot
-  \code{MCTruth}/\code{MCParticle} momenta must be extracted once (one pass over the artroot files via xrootd) and
-  distributed as a companion truth file. The artroot file list is in the record.
+\item \textbf{Direction of the primaries.} The deployed model needs the generator's initial momentum vectors, which
+  only the artroot \code{MCTruth}/\code{MCParticle} records hold: one pass over the artroot files via xrootd (the
+  list is in the record), distributed as a companion truth file keyed by \code{event\_id} and \code{g4\_id}. Until
+  then the start-to-end displacement serves development, with the Geant4 leak described in Section~\ref{sec:status};
+  the companion also lets that leak be measured.
 \item \textbf{Exposure.} A POT per file, or a per-event weight, is needed for any cross-section use; it is not in the
   HDF5 files.
 \item \textbf{Hit-level targets.} Which per-PFParticle quantities to derive from the hit tables, and the disk budget for

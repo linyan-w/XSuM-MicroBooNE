@@ -14,7 +14,7 @@ def _slim():
 
 def test_slim_round_trip(sample, tmp_path):
     stem = str(tmp_path / "ex")
-    _slim()(sample.path, stem, None, 0.01)
+    _slim()(sample.path, stem, None, 0.01, chunk=128)   # several row groups
     t = ak.from_parquet(stem + ".truth.parquet"); r = ak.from_parquet(stem + ".reco.parquet")
     assert len(t) == sample.n_events
     nu = np.isin(sample.read("pandoraPrimary_table", ["slice_pdg"])["slice_pdg"], [12, 14])

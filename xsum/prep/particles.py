@@ -1,9 +1,11 @@
 """The generator-level input of one event: the Geant4 primaries of the particle table.
 
 `start_process == "primary"` marks the particles that emerge from the neutrino interaction (the generator's final state
-after final-state interactions, as handed to Geant4); everything else in the table is a secondary. The table stores the
-momentum magnitude and the start/end positions, not the direction: `direction()` is the start-to-end displacement, a
-proxy that is exact for particles that stop or exit without scattering and approximate otherwise (docs/technote, Section 5).
+after final-state interactions, as handed to Geant4); everything else in the table is a secondary. Species and the
+momentum magnitude are the particle's initial state (generator level). The table stores no momentum vector:
+`direction()` is the unit start-to-end displacement, a DEVELOPMENT STOPGAP that carries Geant4 propagation (the end
+point is where the track stopped or interacted); the deployed model must take the generator's initial momentum vector
+from the artroot companion file (docs/technote, Section 6 and the open questions).
 """
 from __future__ import annotations
 
