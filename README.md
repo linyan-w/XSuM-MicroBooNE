@@ -7,17 +7,20 @@ quantities of the open sample, trained on the sample itself, so that events from
 The target sample is the **BNB inclusive overlay sample without wire information**
 ([10.5281/zenodo.8370883](https://doi.org/10.5281/zenodo.8370883), 18 HDF5 files, 195 GB, 753,467 events).
 
-This is the starting point of the work: the sample is characterised, its files can be read in place or fetched, the
-truth side (Geant4 primaries) and the reconstruction side (Pandora's neutrino slice and PFParticles) are slimmed into
-Parquet, and the differences from the MINERvA case are written down in the technote [`docs/technote/technote.pdf`](docs/technote/technote.pdf). The model,
-the training and the inference are not written yet.
+State of the work: the sample is characterised, its files can be read in place or fetched, the truth side (Geant4
+primaries) and the reconstruction side (Pandora's neutrino slice and PFParticles) are slimmed into Parquet, the training
+dataset and the **event stage** of the model (set encoder, flag heads, PFParticle multiplicity head, event flow) are
+written and run end to end on the test file. The PFParticle set flow, the hit-level curation it needs, the decoder and
+the generator-input path are not written. The design, the measurements and the status are in the technote
+[`docs/technote/technote.pdf`](docs/technote/technote.pdf).
 
 ## Layout
 
 | path | content |
 |---|---|
-| `xsum/` | the package: `io/h5.py` reads the open-sample files (local or straight from Zenodo over HTTP ranges), `io/tables.py` lists the columns used, `prep/` selects the primaries and defines the detector volume, `constants.py` holds the conventions |
-| `scripts/curate/` | `fetch_zenodo.py` (download with md5 and a disk reserve), `h5_summary.py` (structure and statistics of a file), `slim.py` (HDF5 to truth/reco Parquet), `make_example.py` (the test file) |
+| `xsum/` | the package: `io/h5.py` reads the open-sample files (local or straight from Zenodo over HTTP ranges), `io/tables.py` lists the columns used, `prep/` selects the primaries and defines the detector volume, `data/` the dataset over the slim files, the event-vector transform and the torch view, `models/` the set encoder, the flow matcher and the surrogate, `train/` the event-stage loop and its evaluation, `constants.py` the conventions |
+| `scripts/curate/` | `fetch_zenodo.py` (download with md5 and a disk reserve), `h5_summary.py` (structure and statistics of a file), `slim.py` (HDF5 to truth/reco Parquet, streamed in event chunks), `make_example.py` (the test file), `pipeline_file00.sh` (file 00 end to end) |
+| `scripts/train/` | `train_event.py`: train and evaluate the event stage on slim files |
 | `configs/` | the Zenodo file manifest (names, sizes, md5s, URLs) |
 | `docs/technote/` | the technote (`technote.tex`, `technote.pdf`; `build.sh` rebuilds it): the sample, what the files contain and what was measured on them, the surrogate's input and output, the differences from MINERvA, the schematic of the chain with the status of every step, open questions; the collaboration's column documentation (`h5_content.md`) becomes its appendix |
 | `tests/` | reader and preparation tests on a 300-event extract of the first file (`tests/data/`, 2.3 MB) |
@@ -38,7 +41,13 @@ python scripts/curate/slim.py data/h5/BNB_All_NoWire_00.h5 data/slim/BNB_All_NoW
 
 # or slim straight from Zenodo (every column of the event-level tables streams in; hit tables are not read)
 python scripts/curate/slim.py "https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_00.h5/content" data/slim/BNB_All_NoWire_00 --events 5000
+
+# train the event stage on the slim files and evaluate on the test split (metrics.json, figures/)
+python scripts/train/train_event.py reports/event00 --stems data/slim/BNB_All_NoWire_00 --epochs 20
 ```
+
+The tests and the training need torch; on dune-gpu01 the XSuM-MINERvA environment is reused
+(`/home/lwan/AI/Diffusion/.venv/bin/python`, with h5py and fsspec added) instead of a second 6 GB venv.
 
 ## What the files give the surrogate
 
