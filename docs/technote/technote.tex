@@ -340,9 +340,10 @@ the slice vertex, and four hit quantities on each of three planes), transformed 
 logit with two flags for the \pct{10.5} of PFParticles at exactly 1 and the \pct{2} at exactly 0, the asinh-compressed
 start-point offset, a has-hits flag per plane, and the logs of the dequantised counts and spans and of the charge, with
 noise filling a plane that has no hits (the flag-and-noise construction of the MINERvA prong transform). The set flow
-of Figure~\ref{fig:model} was then trained on top of the event-stage model of Section~\ref{sec:first}, every parameter
-fine-tuned, for 20 epochs (102\,s). Table~\ref{tab:pfp} and Figure~\ref{fig:pfp} are the test split, flat over
-PFParticles (4\,889 real, 4\,852 sampled).
+of Figure~\ref{fig:model} was then trained on top of the event-stage model of Section~\ref{sec:first} with every
+event-stage parameter frozen (\code{train\_pfp.py --only-pfp})\, 120 epochs (11\\,min\, the best epoch by the
+set-flow validation loss). Table~\ref{tab:pfp} and Figure~\ref{fig:pfp} are the test split\, flat over PFParticles
+(4\,889 real\, 4\,884 sampled).
 
 \begin{table}[htbp]\centering\small
 \caption{PFParticle stage on file 00, test split. W1 in model space and the 16/50/84 quantiles in physical units on the
@@ -350,19 +351,19 @@ collection plane (plane 2); the rates of the flags; and the closure classifier o
 and the log of each hit quantity, zeros where a plane has no hits).}\label{tab:pfp}
 \begin{tabular}{@{}lccc@{}}\toprule
 column & W1 (model space) & sample q16 / 50 / 84 & surrogate q16 / 50 / 84\\ \midrule
-track/shower score & 0.21 & 0.19 / 0.92 / 1.00 & 0.21 / 0.93 / 1.00\\
-start point $- $ slice vertex, $x$ (cm) & 0.26 & $-1.24$ / $-0.01$ / 0.88 & $-0.98$ / $-0.02$ / 0.78\\
-start point $- $ slice vertex, $z$ (cm) & 0.26 & $-0.37$ / 0.18 / 9.75 & $-0.60$ / 0.31 / 4.75\\
-hits, plane 2 & 0.03 & 11 / 57 / 307 & 8 / 59 / 294\\
-charge, plane 2 (ADC) & 0.02 & 2344 / 10230 / 34829 & 1878 / 10030 / 34782\\
-wire span, plane 2 & 0.06 & 8 / 52 / 331 & 6 / 55 / 306\\
-time span, plane 2 (ticks) & 0.04 & 31 / 190 / 932 & 24 / 182 / 874\\
+track/shower score & 0.13 & 0.19 / 0.92 / 1.00 & 0.36 / 0.92 / 1.00\\
+start point $- $ slice vertex, $x$ (cm) & 0.20 & $-$1.24 / $-$0.01 / 0.88 & $-$0.90 / 0.00 / 0.74\\
+start point $- $ slice vertex, $z$ (cm) & 0.26 & $-$0.37 / 0.18 / 9.75 & $-$0.39 / 0.24 / 5.42\\
+hits, plane 2 & 0.02 & 11 / 57 / 307 & 10 / 60 / 293\\
+charge, plane 2 (ADC) & 0.03 & 2344 / 10230 / 34829 & 2346 / 10477 / 35059\\
+wire span, plane 2 & 0.05 & 8 / 52 / 331 & 8 / 53 / 298\\
+time span, plane 2 (ticks) & 0.04 & 31 / 190 / 932 & 30 / 206 / 890\\
 \midrule
 flag & rate, sample & rate, surrogate & \\ \midrule
-has hits on plane 0 / 1 / 2 & 0.90 / 0.92 / 0.95 & 0.87 / 0.89 / 0.91 & \\
-score exactly 1 / exactly 0 & 0.104 / 0.020 & 0.149 / 0.052 & \\
+has hits on plane 0 / 1 / 2 & 0.90 / 0.92 / 0.95 & 0.89 / 0.92 / 0.94 & \\
+score exactly 1 / exactly 0 & 0.104 / 0.020 & 0.108 / 0.025 & \\
 \midrule
-closure classifier AUC & decoded records 0.95 & single columns 0.52--0.66 & per-event sums W1 0.13--0.17\\
+closure classifier AUC & decoded records 0.85 & single columns at most 0.57 & per-event sums W1 0.03--0.05\\
 \bottomrule\end{tabular}
 \end{table}
 
@@ -372,18 +373,19 @@ closure classifier AUC & decoded records 0.95 & single columns 0.52--0.66 & per-
 surrogate orange, log scale).}\label{fig:pfp}
 \end{figure}
 
-What this says. Every marginal is reproduced to a few percent, the per-event sums of hits and charge over the
-PFParticles to W1 0.13--0.17, and no single decoded column separates the two samples beyond AUC 0.66, but the joint
-record does, at 0.95: the surrogate's PFParticles are individually plausible while the tight relations among a real
-PFParticle's columns (charge against hits, span against hits, the three planes against each other) are not yet
-reproduced, and the flag rates are off by a few percent. Two things were learned on the way. The first closure test
+What this says. Every marginal is reproduced to a few percent, the flag rates to a percent, the per-event sums of
+hits and charge over the PFParticles to W1 0.03--0.05, and no single decoded column separates the two samples beyond
+AUC 0.57; the joint record still does, at 0.85: the surrogate's PFParticles are individually
+right while the tight relations among a real PFParticle's columns (charge against hits, span against hits, the three
+planes against each other) are only partly reproduced. Three things were learned on the way. The first closure test
 scored 0.97 for a wrong reason: the real rows were float32 and the decoded surrogate rows float64, and a tree
 classifier separated the two representations of the same integer's logarithm on its low bits; the test now casts both
-sides. And a six-times longer fine-tuning of every parameter overfits the sample: the event-stage heads' validation
-losses rise after 30 epochs (the origin head from 0.37 to 1.6) while the set-flow loss improves only from 1.35 to
-1.21 and the closure does not move. File 00 (34\,k training events, 38\,k PFParticles) is the data limit of the
-PFParticle level; the XSuM-MINERvA prong stage had 15.8\,M events. The levers are more files, and training the set flow
-alone with the event stage frozen (\code{train\_pfp.py --only-pfp}).
+sides. Fine-tuning every parameter, as the MINERvA prong stage does, overfits this sample: 20 epochs give a closure of
+0.95 with flag rates off by a few percent, and six times longer the event-stage heads' validation losses rise (the origin
+head from 0.37 to 1.6) while the set flow barely improves. Freezing the event stage and training the set flow alone
+for 120 epochs is what the table shows (set-flow validation loss 1.13 against 1.35). File 00 (34\,k training events,
+38\,k PFParticles) is the data limit of the PFParticle level; the XSuM-MINERvA prong stage had 15.8\,M events, and
+more files are the lever.
 
 \paragraph{Where we are.} Reading the schematic from the top left:
 \begin{description}[nosep, leftmargin=28mm, style=sameline]
