@@ -10,7 +10,7 @@ requires-python = ">=3.9"
 dynamic = ["dependencies"]
 
 [tool.setuptools]
-packages = ["xsum", "xsum.io", "xsum.prep"]
+packages = ["xsum", "xsum.io", "xsum.prep", "xsum.data"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
