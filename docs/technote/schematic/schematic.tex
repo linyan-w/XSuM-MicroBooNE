@@ -46,9 +46,9 @@
 \draw[arrm] (hits.south) |- (ds.east);
 
 % ================= band 2: the model =================
-\node[part, below=14mm of art.south west, anchor=north west, xshift=-37mm-7mm] (inp) {\textbf{Input} (defined)\\ per primary: class (14), $T$, direction proxy\\ global: $\vec{v}_\text{corr}$, flavour, CC/NC, $E_\nu$\\ neutrons kept; $T \ge 10$\,MeV};
+\node[part, below=14mm of art.south west, anchor=north west, xshift=-37mm-7mm] (inp) {\textbf{Input} (defined)\\ per primary: class (14), $T$, direction proxy\\ global: $\vec{v}_\text{corr}$ only\\ neutrons kept; $T \ge 10$\,MeV};
 \node[miss, right=of inp] (enc) {\textbf{Set encoder}\\ transformer over the primaries with a global token (as in XSuM-MINERvA)};
-\node[miss, right=of enc] (heads) {\textbf{Heads}\\ Bernoulli: $\nu$ slice found\\ event flow: slice vertex, $\nu$ score, flash-match score, flash PE and $y/z$\\ categorical: $N_\text{PFP}$ (1--10)\\ PFParticle set flow: track/shower score, start point, hit-derived charge and extent};
+\node[miss, right=of enc] (heads) {\textbf{Heads} (Figure 2)\\ flags: $\nu$ slice found, beam flash found; slice origin: matched / wrong\\ $N_\text{PFP}$ (1--10)\\ event flow: vertex residual, scores, flash\\ PFParticle set flow: track/shower score, start point, hit-derived charge and extent};
 \node[miss, right=of heads] (dec) {\textbf{Decoder, output file}\\ inverse transforms; a file in the open-sample table layout (event, pandoraPrimary, pandoraPfp, opflash) with the input events as truth};
 \node[miss, right=of dec] (train) {\textbf{Training and ensemble}\\ event stage, PFParticle stage; seeds for the model uncertainty; universes and weights as in XSuM-MINERvA};
 

@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 python3 h5_content_table.py > h5_content_table.tex
-( cd schematic && pdflatex -interaction=nonstopmode -halt-on-error schematic.tex > /dev/null && rm -f schematic.aux schematic.log )
+( cd schematic && for f in schematic model; do pdflatex -interaction=nonstopmode -halt-on-error $f.tex > /dev/null && rm -f $f.aux $f.log; done )
 for i in 1 2; do pdflatex -interaction=nonstopmode -halt-on-error technote.tex > /dev/null; done
 pdflatex -interaction=nonstopmode -halt-on-error technote.tex > /dev/null
 grep -E "Overfull|Warning: (Reference|Citation|Label)|undefined" technote.log || true

@@ -229,27 +229,51 @@ are written and tested in the repository, the orange one is defined on paper onl
 blue box is the external sample, read in place.}\label{fig:schematic}
 \end{sidewaysfigure}
 
-\paragraph{Input} (one event): $\vec v_\text{corr}$, \code{nu\_pdg}, \code{is\_cc}, $E_\nu$, and the set of primaries
+\paragraph{Input} (one event): the space-charge-corrected vertex $\vec v_\text{corr}$ and the set of primaries
 above 10\,MeV kinetic energy with the outgoing neutrino of NC events dropped: class (14 classes,
-\code{xsum.constants.CLASS\_NAMES}), kinetic energy and direction proxy. Neutrons are kept (they are the most common
-primary) and so are events outside the active volume and events with no primaries at all, which are Truth-only events
-with an empty input set. The slim truth file (\code{scripts/curate/slim.py}) holds exactly this plus the event
-identifiers and an \code{in\_active\_volume} flag.
+\code{xsum.constants.CLASS\_NAMES}), kinetic energy and direction, the latter from the start-to-end displacement until
+the artroot momenta are extracted. Neutrons are kept (they are the most common primary) and so are events outside the
+active volume and events with no primaries at all, which are Truth-only events with an empty input set. As in
+XSuM-MINERvA, generator-internal quantities ($E_\nu$, flavour, CC/NC, interaction mode) are not inputs: the detector
+sees only the particles, and the lepton is a token like any other, so the flavour and the current are in the set
+already. The slim truth file (\code{scripts/curate/slim.py}) holds all of this plus the event identifiers and an
+\code{in\_active\_volume} flag.
 
-\paragraph{Output} (one event):
+\subsection{Design of the surrogate}\label{sec:design}
+
+Figure~\ref{fig:model} is the proposed model, drawn in the layout of the XSuM-MINERvA schematic so that the two can be
+read side by side; it is a design, nothing of it is implemented. The set encoder, the multiplicity head, the flow
+classes, the decoder's role and the uncertainty treatment port unchanged; the heads and the columns they produce are
+where MicroBooNE differs. Sampling goes top to bottom, every head conditioned on what was sampled above it:
 \begin{enumerate}[nosep]
-\item \code{has\_nu\_slice} (Bernoulli): Pandora selected a neutrino slice.
-\item Given a slice: its vertex (3), \code{nu\_score}, \code{flashmatch\_score}, \code{slice\_pdg} (12 or 14), the
-  beam-flash PE and $y/z$ barycentre, and the number of PFParticles.
-\item Per PFParticle: \code{trkshr\_score}, start point, and the hit-derived summary (charge per plane, hit count,
-  extent along the direction, end point) once the hit tables are curated.
+\item \textbf{Event flag heads}, two Bernoulli: Pandora selects a neutrino slice (\pct{39} of events), and a flash is
+  found in the beam window (\pct{85}). The first is this sample's ``reconstructed'' flag and the efficiency numerator.
+\item \textbf{Slice origin head}, categorical given a slice: \emph{matched} (the slice is the neutrino's, vertex within
+  a few cm of the truth) or \emph{wrong} (a cosmic slice that Pandora labelled as the neutrino, the \pct{20} tail of
+  out-of-volume events and a smaller one inside). This is the mixture that Section~\ref{sec:measured} called for: the
+  vertex residual of a matched slice has a millimetre core, the wrong slice has a vertex anywhere in the TPC. A
+  Bernoulli for \code{slice\_pdg}~=~12 (Pandora's $\nu_e$ hypothesis) sits with it.
+\item \textbf{PFParticle multiplicity head}, categorical over 1--10, as the hadron multiplicity head of MINERvA.
+\item \textbf{Event flow}, a 9-dimensional conditional flow: for a matched slice the vertex residual (3), the
+  $\nu$ score and the flash-match score; for the beam flash its PE and $y$/$z$ barycentre. A wrong slice is not
+  modelled: its vertex and scores are drawn from the open sample's pool of cosmic slices, the way MINERvA's dead-time
+  variable was drawn, because they carry no information about the interaction.
+\item \textbf{PFParticle set flow}, a masked flow over the $N_\text{PFP}$ tokens with cross-attention to the primary
+  embeddings, as the prong set flow: per PFParticle the track/shower score and the start point relative to the slice
+  vertex, and, once the hit tables are curated, the charge per plane, the hit count and the extent. Without the hit
+  columns the PFParticle level carries little physics, which is why the hit-level slimming is the next step.
+\item \textbf{Decoder}: inverse transforms, \code{pfp\_pdg} from the track/shower score, and the open sample's own
+  tables as output, with every input event in \code{event\_table} as the denominator.
 \end{enumerate}
-The slim reco file holds items 1 and 2 and the PFParticle columns of the HDF5 file; the hit-derived columns are the
-next curation step. The model can then follow XSuM-MINERvA: a set encoder on the primaries with the vertex and flavour
-in the global token, Bernoulli heads for the flags, a categorical head for the number of PFParticles, an event flow for
-the slice-level continuous quantities and a prong set flow for the PFParticles, with an ensemble of seeds for the model
-uncertainty and the output written in the open sample's own table layout so that a selection written for the sample
-runs unchanged.
+The uncertainty treatment is XSuM-MINERvA's: the sampling spread is the learned resolution, and an ensemble of seeds
+gives universes with one weight per flag (slice found, flash found, origin, $\nu_e$ hypothesis) and their product.
+
+\begin{sidewaysfigure}[p]\centering
+\includegraphics[width=\textheight]{schematic/model.pdf}
+\caption{The proposed surrogate, in the layout of the XSuM-MINERvA schematic. Green parts port unchanged, orange parts
+are new for MicroBooNE, the dashed part waits on the hit-level curation. Nothing of it is implemented yet.}
+\label{fig:model}
+\end{sidewaysfigure}
 
 \paragraph{Where we are.} Reading the schematic from the top left:
 \begin{description}[nosep, leftmargin=28mm, style=sameline]
@@ -257,7 +281,7 @@ runs unchanged.
   guarded fetcher (\code{fetch\_zenodo.py}); its structure and statistics are measured (\code{h5\_summary.py},
   Sections~\ref{sec:content}--\ref{sec:measured}); the event-level slimming into truth and reco Parquet is written
   (\code{slim.py}) and tested on a 300-event extract of file 00 (\code{tests/}, seven tests).
-\item[\spart] the model input and output are defined (above), nothing more.
+\item[\spart] the model's input and its heads are designed (Section~\ref{sec:design}, Figure~\ref{fig:model}), nothing more.
 \item[\smiss] the hit-level slimming (per-PFParticle charge and extent from $6.7\times10^8$ hit links per file, one
   file at a time), the companion truth from the artroot files (directions, POT, interaction mode), the training
   dataset and split, the model and its training chain, the decoder and output file, the validation suite, and the
