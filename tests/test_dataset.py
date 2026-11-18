@@ -3,7 +3,7 @@ import importlib.util, pathlib
 import numpy as np
 import pytest
 
-from xsum.data.dataset import EventDataset, split_by_subrun, EVENT_FIELDS, N_PFP_MAX
+from xsum.data.dataset import EventDataset, split_by_subrun, EVENT_FIELDS, PFP_FIELDS, N_PFP_MAX
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -23,7 +23,7 @@ def test_dataset(slim_stem, sample):
     assert ds.has_slice.sum() == 123
     it = ds[1]
     assert it["cls"].shape == (32,) and it["feat"].shape == (32, 4) and it["ctx"].shape == (3,)
-    assert it["event"].shape == (len(EVENT_FIELDS),) and it["pfp"].shape == (N_PFP_MAX, 4)
+    assert it["event"].shape == (len(EVENT_FIELDS),) and it["pfp"].shape == (N_PFP_MAX, len(PFP_FIELDS))
     assert (ds.mask.sum(1) == np.minimum(ds.n_prim, 32)).all()
     ok = ds.has_slice
     assert np.isfinite(ds.event[ok, :5]).all() and np.isnan(ds.event[~ok]).all()
