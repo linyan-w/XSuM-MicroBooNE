@@ -1,5 +1,6 @@
 # MicroBooNE BNB Inclusive Overlay Sample (No Wire Info): Zenodo record 8370883 (doi 10.5281/zenodo.8370883), cc-by-4.0.
 # Generated from https://zenodo.org/api/records/8370883 by scripts/curate/fetch_zenodo.py --manifest-update. Columns: name size_bytes md5 url
+# The xrootd list itself is kept as configs/public-artroot-bnb-all.list (file names carry the overlay data run and subrun).
 BNB_All_NoWire_00.h5  11031250577  5b76ac08784a9ceff6bda81697a65de8  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_00.h5/content
 BNB_All_NoWire_01.h5  11116744542  f5f542ecdd05ab2464872c458e7d86ae  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_01.h5/content
 BNB_All_NoWire_02.h5  11087687593  9f4f82f44cda339b66c31a2d7d37cb24  https://zenodo.org/api/records/8370883/files/BNB_All_NoWire_02.h5/content

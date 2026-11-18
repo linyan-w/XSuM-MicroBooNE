@@ -73,8 +73,17 @@ records.
 
 \paragraph{What is not in the files.} There is no generator-level record beyond the event table (flavour, energy,
 direction, CC/NC, lepton energy, vertex): no interaction mode, no initial-state nucleon, no event weight. There is no
-exposure (POT) in the files or on the record. The generator (GENIE in MicroBooNE's MCC9 configuration), the flux and
-the POT are in the artroot files and the collaboration's documentation and must be taken from there.
+exposure (POT) in the files or on the record. And on the reconstruction side there is nothing downstream of Pandora's
+pattern recognition: no fitted track (length, direction, end point), no range or multiple-scattering momentum, no
+calorimetric $dE/dx$, no particle-identification score, no shower energy. All of it exists in the artroot files
+(\code{file-content-artroot.md} of the OpenSamples repository): the generator record (\code{simb::MCTruth},
+\code{GTruth} with the interaction mode, \code{MCFlux}), the Geant4 particles with their momentum vectors
+(\code{simb::MCParticle}), and the Pandora chain's \code{recob::Track} and \code{recob::Shower}, calorimetry
+(\code{pandoracaliSCE}), particle identification (\code{pandoracalipidSCE}) and muon multiple-scattering momentum
+(\code{pandoraMCSMuNoSCE}). The artroot sample is 6.4\,TB in 24\,436 files of 0.26\,GB, served over xrootd; the
+file names carry the overlay data run and subrun, but only a third of file 00's (run, subrun) pairs match a file name
+directly, so locating a given HDF5 event in the artroot sample needs an index built by scanning the files. The list
+is kept as \code{configs/public-artroot-bnb-all.list}.
 
 \subsection{Content of the HDF5 files}\label{sec:content}
 
@@ -431,11 +440,15 @@ stage frozen); every number of Tables~\ref{tab:first} and~\ref{tab:pfp} is repro
 \section{Open questions}\label{sec:open}
 
 \begin{enumerate}[nosep]
-\item \textbf{Direction of the primaries.} The deployed model needs the generator's initial momentum vectors, which
-  only the artroot \code{MCTruth}/\code{MCParticle} records hold: one pass over the artroot files via xrootd (the
-  list is in the record), distributed as a companion truth file keyed by \code{event\_id} and \code{g4\_id}. Until
-  then the start-to-end displacement serves development, with the Geant4 leak described in Section~\ref{sec:status};
-  the companion also lets that leak be measured.
+\item \textbf{The artroot companion.} The deployed model needs the generator's initial momentum vectors, and a
+  surrogate an analysis can use needs reconstruction variables that only the artroot files hold: track length,
+  direction and end point, range and multiple-scattering momentum, $dE/dx$ and particle-identification scores, shower
+  energy (Section~\ref{sec:sample}). Both come from one pass over the artroot files via xrootd with
+  \code{uboonecode v08\_00\_00\_54} from CVMFS, writing a companion Parquet keyed by \code{event\_id} (and
+  \code{g4\_id} for the primaries, the PFParticle id for the reconstruction); file 00's events sit in about 900 files,
+  240\,GB to stream and nothing to store. The companion is the point at which the surrogate's output stops being
+  Pandora-level and becomes the analysis level of Figure~\ref{fig:model}'s PFParticle set flow. Until then the
+  start-to-end displacement serves development, with the Geant4 leak described in Section~\ref{sec:status}.
 \item \textbf{Exposure.} A POT per file, or a per-event weight, is needed for any cross-section use; it is not in the
   HDF5 files.
 \item \textbf{Hit-level targets.} The present per-plane hit count, charge, wire span and time span are a first
