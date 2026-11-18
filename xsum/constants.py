@@ -1,6 +1,6 @@
 """MicroBooNE conventions used across the package. Units of the open-sample HDF5 files: GeV, cm, ticks, PE.
 
-Sources: uboone/OpenSamples v02 (microboone_utils.py, file-content-hdf5.md) and the measurements in docs/technote (Section 4).
+Sources: uboone/OpenSamples v02 (microboone_utils.py, file-content-hdf5.md) and the measurements in docs/technote (Section 2.2).
 """
 import numpy as np
 

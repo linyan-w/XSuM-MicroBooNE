@@ -2,7 +2,7 @@
 """Print the structure of an open-sample file (local path or Zenodo URL: only metadata and the first chunks are read)
 and per-event statistics over the first --events events. Writes a Markdown report with --out.
 
-Usage: scripts/curate/h5_summary.py FILE_OR_URL [--events 2000] [--out notes.md]   (the numbers of 2026-11-03 are in docs/technote/technote.pdf, Section 4)
+Usage: scripts/curate/h5_summary.py FILE_OR_URL [--events 2000] [--out notes.md]   (the numbers of 2026-11-03 are in docs/technote/technote.pdf, Section 2.2)
 """
 import argparse, pathlib, sys, time
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2]))

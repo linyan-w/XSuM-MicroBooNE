@@ -29,7 +29,7 @@
 % ================= band 1: the sample and its curation =================
 \node[ext] (zen) {\textbf{Open sample on Zenodo}\\ record 8370883 (CC BY 4.0)\\ 18 HDF5 files, 195 GB, 753\,467 events\\ + xrootd list of the artroot files};
 \node[done, right=of zen] (read) {\textbf{Read / fetch}\\ \texttt{xsum.io.h5.Sample}: tables by event range, local file or Zenodo URL over HTTP ranges\\ \texttt{fetch\_zenodo.py}: md5, disk reserve};
-\node[done, right=of read] (char) {\textbf{Characterise}\\ \texttt{h5\_summary.py}: table shapes, flavour mix, volume, primaries, slices, flashes (first 2\,000 events of file 00)\\ $\Rightarrow$ technote Sections 3--4};
+\node[done, right=of read] (char) {\textbf{Characterise}\\ \texttt{h5\_summary.py}: table shapes, flavour mix, volume, primaries, slices, flashes (first 2\,000 events of file 00)\\ $\Rightarrow$ technote Section 2};
 \node[done, right=of char] (slim) {\textbf{Slim, event level}\\ \texttt{slim.py} $\Rightarrow$ Parquet\\ \emph{truth}: event table + Geant4 primaries (class, $T$, direction proxy)\\ \emph{reco}: $\nu$ slice, its PFParticles, beam flash};
 \node[miss, right=of slim] (hits) {\textbf{Slim, hit level}\\ per PFParticle from \texttt{hit\_table} + \texttt{pandoraHit\_table} ($6.7\times10^8$ links per file): charge per plane, hit count, extent, end point\\ one 11 GB file at a time};
 

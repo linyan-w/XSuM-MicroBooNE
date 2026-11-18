@@ -20,29 +20,13 @@
 \newcommand{\spart}{\textcolor{cpart}{\textbf{partly}}}
 \newcommand{\smiss}{\textcolor{cmiss}{\textbf{not started}}}
 
-\title{XSuM-MicroBooNE: a surrogate detector model for the MicroBooNE open sample\\[2mm]
-  \large Technote 1: the sample, what it gives a surrogate, and the plan}
-\author{Linyan Wan\\ \small Fermi National Accelerator Laboratory}
+\title{XSuM-MicroBooNE: a surrogate detector model for the MicroBooNE open sample}
+\author{}
 \date{18 November 2026}
 
 \begin{document}
 \maketitle
 
-\begin{abstract}
-\noindent
-XSuM-MINERvA is a generative surrogate of the MINERvA detector trained on the MINERvA open dataset: it maps the
-final-state particles of a simulated interaction to the reconstructed quantities of the analysis tuples, so that events
-from any generator can be run through it. This note starts the same programme on MicroBooNE's open samples, for the
-\emph{BNB inclusive overlay sample without wire information} (Zenodo record 8370883: 18 HDF5 files, 195\,GB,
-753\,467 events). It records what the files contain, what was measured on the first file without downloading it, how
-the truth and reconstruction sides are slimmed, where the MicroBooNE case differs from the MINERvA one, and, on a
-schematic of the full chain, which steps exist and which are missing. The main findings: the reconstruction in the HDF5
-files stops at Pandora's pattern recognition (a neutrino slice, its vertex and scores, its PFParticles with a
-track/shower score) with no track fits, calorimetry or particle identification; the Geant4 primaries carry no direction;
-and the files carry no exposure. The surrogate's output is therefore the Pandora level, per-PFParticle charge and extent
-must be derived from the hit tables, and directions and POT must come from the artroot files. Repository:
-\url{https://github.com/linyan-w/XSuM-MicroBooNE}.
-\end{abstract}
 
 \tableofcontents
 
@@ -57,9 +41,10 @@ trained on the open sample MicroBooNE released for exactly this kind of collabor
 is what this note does. The schematic in Figure~\ref{fig:schematic} and Section~\ref{sec:status} say where the work
 stands.
 
-Nothing of the sample is stored locally: every measurement here was made by reading the first file in place from
-Zenodo over HTTP range requests (metadata and the first chunks of each column, a few tens of MB), because the machine
-has about 30\,GB free and one file is 11\,GB. A fetch script with a disk reserve exists for when a file is needed.
+The first measurements were made by reading the first file in place from Zenodo over HTTP range requests (metadata
+and the first chunks of each column, a few tens of MB), because the machine has about 85\,GB free and one file is
+11\,GB. File 00 was then downloaded (md5-verified, in a resuming retry loop: Zenodo serves about 3\,MB/s and drops
+connections) and is the only file on disk; everything below runs on it.
 
 \section{The open sample}\label{sec:sample}
 
@@ -91,7 +76,7 @@ direction, CC/NC, lepton energy, vertex): no interaction mode, no initial-state 
 exposure (POT) in the files or on the record. The generator (GENIE in MicroBooNE's MCC9 configuration), the flux and
 the POT are in the artroot files and the collaboration's documentation and must be taken from there.
 
-\section{Content of the HDF5 files}\label{sec:content}
+\subsection{Content of the HDF5 files}\label{sec:content}
 
 Every table is a group of column datasets with one row per object, plus an auxiliary dataset
 \code{event\_id.seq\_cnt} of rows \code{[event\_seq, count]}: for each event that has rows in the table, the event's
@@ -144,7 +129,7 @@ collaboration's description, \pct{88} of those rows have vertex $-999$, and such
 they are ignored. Rows of \code{pandoraPrimary\_table} with \code{nu\_score}~=~$-999$ (cosmic slices without a score)
 and \code{flashmatch\_score}~=~9999 (no match attempted) are sentinels.
 
-\section{Measured properties of the sample}\label{sec:measured}
+\subsection{Measured properties of the sample}\label{sec:measured}
 
 Measured on the whole of file 00 (42\,674 events) with \code{scripts/curate/h5\_summary.py} (2026-11-18; the
 first 2\,000 events, read in place on 2026-11-03, gave the same picture within a few percent).
@@ -197,7 +182,7 @@ is a few millimetres per axis, an order of magnitude better than MINERvA's, so t
 be a narrow core with a wide wrong-slice tail: a mixture that wants its own class, as the vertex-plane head had in
 MINERvA.
 
-\section{Differences from the MINERvA case}\label{sec:diff}
+\subsection{Differences from the MINERvA case}\label{sec:diff}
 
 Table~\ref{tab:diff} sets the two cases side by side. The MicroBooNE input is poorer (no direction, no interaction
 mode, no exposure) and its reconstruction output is at an earlier stage (pattern recognition rather than fitted tracks
@@ -252,7 +237,7 @@ vector, which exists only in the artroot files (\code{MCParticle} at the start o
 companion file (Section~\ref{sec:open}). The \code{category} and \code{instance} columns are Geant4 bookkeeping and are
 not used.
 
-\subsection{Design of the surrogate}\label{sec:design}
+\subsection{Design}\label{sec:design}
 
 Figure~\ref{fig:model} is the proposed model, drawn in the layout of the XSuM-MINERvA schematic so that the two can be
 read side by side. Its event stage (everything but the PFParticle set flow) is implemented and trained once
