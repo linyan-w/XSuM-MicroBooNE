@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 
 from ..data.dataset import EventDataset, EVENT_FIELDS
 from ..data.torch_data import BucketBatchSampler, TorchEvents, collate
-from ..data.transform import EventTransform, MODEL_NAMES, VTX_COLS, FLASH_COLS
+from ..data.transform import EventTransform, MODEL_NAMES, design_mask
 from ..eval.metrics import binary_metrics, confusion, multiclass_metrics, sample_vs_real_1d
 from ..models.surrogate import Surrogate, N_PFP_CLASSES
 from ..constants import N_CLASSES
@@ -44,7 +44,7 @@ def train(stems, out_dir, epochs=20, bs=512, lr=3e-4, seed=0, device="cuda", d_m
     t0 = time.time()
     ds = EventDataset(stems, active_only=active_only)
     ok_tr = (ds.split == 0) & ds.has_slice
-    tf = EventTransform().fit(ds.event[ok_tr])
+    tf = EventTransform().fit(np.where(design_mask(ds.matched[ok_tr], ds.flash_found[ok_tr]) > 0, ds.event[ok_tr], np.nan))
     idx, tds, ld = make_loaders(ds, tf, bs, init_seed, workers, bucket)
     print(ds.summary(), flush=True)
     print(f"data: {len(ds)} events ({len(idx['train'])} train / {len(idx['val'])} val / {len(idx['test'])} test), {time.time()-t0:.0f} s", flush=True)
@@ -127,8 +127,9 @@ def evaluate(model, tf, ds, idx_test, ld_test, out_dir, device="cuda", n_steps=6
         M["rates"][k + "_true"] = float(flags[has, j].mean()); M["rates"][k + "_sampled"] = float(S["cflags"][sl, j - 1].mean())
     # event vector: real (events with a slice) vs sampled (events the surrogate gave a slice), per column with its mask
     xr, mr = tf.forward(ds.event[idx_test[has]]); xf, mf = S["x"][sl], S["dmask"][sl]
+    mr *= design_mask(ds.matched[idx_test[has]], ds.flash_found[idx_test[has]]); xr[mr == 0] = 0.0
     M["event_model_space"] = {n: sample_vs_real_1d(xr[mr[:, j] > 0, j], xf[mf[:, j] > 0, j]) for j, n in enumerate(MODEL_NAMES)}
-    yr = ds.event[idx_test[has]]; yf = tf.inverse(xf, mf)
+    yr = tf.inverse(xr, mr); yf = tf.inverse(xf, mf)
     M["event_raw"] = {n: sample_vs_real_1d(yr[np.isfinite(yr[:, j]), j], yf[np.isfinite(yf[:, j]), j]) for j, n in enumerate(EVENT_FIELDS)}
     # classifier closure: real vs surrogate rows, marginal (flags, N, x) and conditional (+ truth features), split by event
     Xt = truth_features(ds, idx_test)

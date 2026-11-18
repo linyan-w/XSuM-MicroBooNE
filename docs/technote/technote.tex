@@ -17,7 +17,7 @@
 \newcommand{\pct}[1]{#1\%}
 \definecolor{cdone}{HTML}{009E73}\definecolor{cpart}{HTML}{E69F00}\definecolor{cmiss}{HTML}{8C8C8C}
 \newcommand{\sdone}{\textcolor{cdone}{\textbf{done}}}
-\newcommand{\spart}{\textcolor{cpart}{\textbf{defined}}}
+\newcommand{\spart}{\textcolor{cpart}{\textbf{partly}}}
 \newcommand{\smiss}{\textcolor{cmiss}{\textbf{not started}}}
 
 \title{XSuM-MicroBooNE: a surrogate detector model for the MicroBooNE open sample\\[2mm]
@@ -146,19 +146,19 @@ and \code{flashmatch\_score}~=~9999 (no match attempted) are sentinels.
 
 \section{Measured properties of the sample}\label{sec:measured}
 
-Measured on the first 2\,000 events of file 00 with \code{scripts/curate/h5\_summary.py} (2026-11-03). They are design
-guides, not final numbers.
+Measured on the whole of file 00 (42\,674 events) with \code{scripts/curate/h5\_summary.py} (2026-11-18; the
+first 2\,000 events, read in place on 2026-11-03, gave the same picture within a few percent).
 
 \begin{table}[H]\centering\small
 \caption{The interaction (event table).}\label{tab:event}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{52mm}p{108mm}@{}}\toprule
-flavour & $\nu_\mu$ 0.981, $\bar\nu_\mu$ 0.007, $\nu_e$ 0.011, $\bar\nu_e$ 0.001\\
-charged current & 0.709\\
-$E_\nu$ (GeV), p50/90/99 & 1.09 / 1.76 / 4.23; lepton energy 0.56 / 1.22 / 2.82\\
-true vertex in the active volume & 0.419 (the sample is generated in the whole cryostat)\\
-vertex range (cm) & $x$ $-63$ to 319 (p50 133), $y$ $-191$ to 191 (p50 $-2$), $z$ $-82$ to 1118 (p50 508)\\
-space-charge shift $|\vec v_\text{corr}-\vec v|$ (cm), p50 / p99 & $x$ 1.1 / 4.6, $y$ 0.03 / 11.0, $z$ 0.003 / 3.5\\
-grouping & 29 runs, 120 subruns in the 2\,000 events\\
+flavour & $\nu_\mu$ 0.985, $\bar\nu_\mu$ 0.009, $\nu_e$ 0.006, $\bar\nu_e$ 0.000\\
+charged current & 0.721\\
+$E_\nu$ (GeV), p50/90/99 & 1.08 / 1.80 / 4.27; lepton energy 0.57 / 1.24 / 2.88\\
+true vertex in the active volume & 0.436 (the sample is generated in the whole cryostat)\\
+vertex range (cm) & $x$ $-63$ to 320 (p50 126), $y$ $-192$ to 192 (p50 $-6$), $z$ $-92$ to 1129 (p50 509)\\
+space-charge shift $|\vec v_\text{corr}-\vec v|$ (cm), p50 / p99 & $x$ 1.1 / 4.5, $y$ 0.04 / 10.7, $z$ 0.004 / 3.8\\
+grouping & 347 runs, 2\,978 subruns\\
 \bottomrule\end{tabular}
 \end{table}
 
@@ -166,11 +166,11 @@ grouping & 29 runs, 120 subruns in the 2\,000 events\\
 \caption{The Geant4 primaries (particle table). ``Selected'' means above 10\,MeV kinetic energy with the outgoing
 neutrino of NC events dropped and neutrons kept.}\label{tab:particles}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{52mm}p{108mm}@{}}\toprule
-particle rows per event, p50/90/99 & 40 / 224 / 717; primaries 2 / 6 / 22\\
-primary PDG counts (2\,000 events) & $n$ 2406, $p$ 2166, $\mu^-$ 850, $\pi^+$ 243, $\pi^0$ 221, $\pi^-$ 103, $e^-$ 14, $\gamma$ 7, $\mu^+$ 4, $K^\pm$ 3, $^{40}$Ar 1\\
-selected primaries per event, p50/90/99/max & 2 / 5 / 14 / 22\\
-selected by model class & $n$ 1864, $p$ 1702, $\mu^-$ 847, $\pi^+$ 241, $\pi^0$ 217, $\pi^-$ 101, $e^-$ 14, $\gamma$ 6, $\mu^+$ 4, $K^\pm$ 3, other 1\\
-primaries with coincident start and end & 0.018 (no direction proxy)\\
+particle rows per event, p50/90/99 & 47 / 228 / 687; primaries 2 / 7 / 22\\
+primary PDG counts & $n$ 51\,434, $p$ 46\,684, $\mu^-$ 19\,650, $\pi^+$ 5\,352, $\pi^0$ 4\,988, $\pi^-$ 2\,196, $\gamma$ 146, $e^-$ 139, $\mu^+$ 128, $\Lambda$ 41, $K^0$ 37, $K^\pm$ 40, $\Sigma^+$ 27, $^{40}$Ar 19\\
+selected primaries per event, p50/90/99/max & 2 / 6 / 14 / 30\\
+selected by model class & $n$ 39\,493, $p$ 36\,523, $\mu^-$ 19\,621, $\pi^+$ 5\,285, $\pi^0$ 4\,928, $\pi^-$ 2\,147, $\gamma$ 142, $e^-$ 139, $\mu^+$ 128, hyperon 77, $K^0$ 41, $K^\pm$ 40, other 19\\
+primaries with coincident start and end & 0.020 (no direction proxy)\\
 events with no particle rows at all & 0.17 (all with the vertex outside the active volume, most of them CC): Geant4 particles are recorded only when the products reach the TPC region\\
 \bottomrule\end{tabular}
 \end{table}
@@ -178,20 +178,20 @@ events with no particle rows at all & 0.17 (all with the vertex outside the acti
 \begin{table}[H]\centering\small
 \caption{Pandora and the optical system.}\label{tab:pandora}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{52mm}p{108mm}@{}}\toprule
-slices per event, p50/90/99 & 30 / 43 / 62; \code{slice\_pdg} counts: 13 (cosmic) 61\,647, 14 ($\nu_\mu$) 705, 12 ($\nu_e$) 79, 11 (undocumented) 721\\
-events with a neutrino slice & 0.392 overall; 0.657 with the true vertex in the active volume, 0.201 outside\\
-$\nu$ score of the neutrino slice, p10/50/90 & 0.011 / 0.32 / 0.99; flash-match score p50/90: 5.1 / 52\\
-slices with any $\nu$ score & 0.411; with a flash-match score 0.436\\
-$|\vec v_\text{slice}-\vec v_\text{corr}|$ (cm), p50/90/99 & 4.6 / 197 / 336 (all); 0.73 / 123 / 312 (vertex in the active volume); per axis p50 inside: 0.2, 0.4, 0.4\\
-PFParticles of the neutrino slice, p50/90/99/max & 2 / 4 / 6 / 10; never zero when a slice exists\\
-\code{pfp\_pdg} & 13 (track) 1482, 11 (shower) 355; \code{trkshr\_score} p10/50/90: 0.06 / 0.93 / 1.0\\
-flashes per event, p50/90/99 & 1 / 2 / 2; events without a flash 0.151\\
-flash time ($\mu$s), p1/50/99 & 2.6 / 4.5 / 22.6; total PE p50/90/99: 697 / 4153 / 9413\\
+slices per event, p50/90/99 & 30 / 43 / 62; \code{slice\_pdg} counts: 13 (cosmic) 1\,318\,911, 14 ($\nu_\mu$) 16\,592, 12 ($\nu_e$) 1\,783, 11 (undocumented) 14\,799\\
+events with a neutrino slice & 0.431 overall; 0.689 with the true vertex in the active volume, 0.231 outside\\
+$\nu$ score of the neutrino slice, p10/50/90 & 0.017 / 0.38 / 0.99; flash-match score p50/90: 5.3 / 51\\
+slices with any $\nu$ score & 0.406; with a flash-match score 0.442\\
+$|\vec v_\text{slice}-\vec v_\text{corr}|$ (cm), p50/90/99 & 3.1 / 178 / 367 (all); 0.64 / 101 / 277 (vertex in the active volume); per axis p50 inside: 0.1, 0.3, 0.4\\
+PFParticles of the neutrino slice, p50/90/99/max & 2 / 4 / 7 / 13; never zero when a slice exists\\
+\code{pfp\_pdg} & 13 (track) 36\,044, 11 (shower) 9\,024; \code{trkshr\_score} p10/50/90: 0.05 / 0.92 / 1.0\\
+flashes per event, p50/90/99 & 1 / 2 / 2; events without a flash 0.135\\
+flash time ($\mu$s), p1/50/99 & 1.9 / 4.5 / 22.4; total PE p50/90/99: 784 / 4172 / 9528\\
 \bottomrule\end{tabular}
 \end{table}
 
-Two things stand out. The ``reconstructed'' flag of this sample, a neutrino slice exists, is \pct{66} inside the active
-volume and \pct{20} outside it; the outside ones are cosmic slices that Pandora labelled as the neutrino, with vertices
+Two things stand out. The ``reconstructed'' flag of this sample, a neutrino slice exists, is \pct{69} inside the active
+volume and \pct{23} outside it; the outside ones are cosmic slices that Pandora labelled as the neutrino, with vertices
 far from the truth (the long tail of the vertex residual). And the resolution of the slice vertex on the correct slice
 is a few millimetres per axis, an order of magnitude better than MINERvA's, so the vertex column of an event flow will
 be a narrow core with a wide wrong-slice tail: a mixture that wants its own class, as the vertex-plane head had in
@@ -227,8 +227,8 @@ units & MeV, mm & GeV, cm, ticks\\
 \begin{sidewaysfigure}[p]\centering
 \includegraphics[width=\textheight]{schematic/schematic.pdf}
 \caption{The chain from the open sample to an analysis on surrogate events, with the status of every step on
-18 November 2026. Band 1 is the sample and its curation, band 2 the model, band 3 its validation and use. Green boxes
-are written and tested in the repository, the orange one is defined on paper only, dashed boxes are not started; the
+18 November 2026 (after the first training). Band 1 is the sample and its curation, band 2 the model, band 3 its validation and use. Green boxes
+are written and tested in the repository, orange ones are partly written, dashed boxes are not started; the
 blue box is the external sample, read in place.}\label{fig:schematic}
 \end{sidewaysfigure}
 
@@ -255,7 +255,8 @@ not used.
 \subsection{Design of the surrogate}\label{sec:design}
 
 Figure~\ref{fig:model} is the proposed model, drawn in the layout of the XSuM-MINERvA schematic so that the two can be
-read side by side; it is a design, nothing of it is implemented. The set encoder, the multiplicity head, the flow
+read side by side. Its event stage (everything but the PFParticle set flow) is implemented and trained once
+(Section~\ref{sec:first}); the PFParticle set flow is design only. The set encoder, the multiplicity head, the flow
 classes, the decoder's role and the uncertainty treatment port unchanged; the heads and the columns they produce are
 where MicroBooNE differs. Sampling goes top to bottom, every head conditioned on what was sampled above it:
 \begin{enumerate}[nosep]
@@ -285,21 +286,80 @@ gives universes with one weight per flag (slice found, flash found, origin, $\nu
 \begin{sidewaysfigure}[p]\centering
 \includegraphics[width=\textheight]{schematic/model.pdf}
 \caption{The proposed surrogate, in the layout of the XSuM-MINERvA schematic. Green parts port unchanged, orange parts
-are new for MicroBooNE, the dashed part waits on the hit-level curation. Nothing of it is implemented yet.}
+are new for MicroBooNE, the dashed part waits on the hit-level curation. Everything but the dashed part is implemented
+and was trained once on file 00 (Section~\ref{sec:first}).}
 \label{fig:model}
 \end{sidewaysfigure}
+
+\subsection{First training: the event stage on file 00}\label{sec:first}
+
+The event stage of Figure~\ref{fig:model} (everything but the PFParticle set flow) is implemented and was trained on
+file 00: 42\,674 events, split 33\,916 / 4\,209 / 4\,549 by subrun, 1.5\,M parameters, 30 epochs of batches of 512
+(1\,980 steps, 37\,s on the RTX 3090). The ``matched'' origin is defined as a slice vertex within 10\,cm of the
+corrected truth: \pct{57} of slices overall, \pct{76} inside the active volume and \pct{10} outside. The vertex residual
+is taken against the true vertex, so its $x$ component carries the space-charge shift (median 2.4\,cm). The flow's
+targets are masked by design: the vertex residual only for matched slices, the flash columns only when a flash was
+found; a wrong slice's vertex is not a target. Table~\ref{tab:first} and Figure~\ref{fig:first} are the test split.
+
+\begin{table}[htbp]\centering\small
+\caption{Event stage on file 00, test split (4\,549 events). Log loss against the marginal (constant-rate) baseline and
+AUC for the flag heads; W1 in model space (robustly standardised units) and the 16/50/84 quantiles in physical units
+for the event flow, open sample against surrogate, each column on the events where it is defined. The closure
+classifier is a gradient-boosted tree told to separate open-sample rows from surrogate rows, on the reconstruction
+vector alone (marginal) and with the input summary added (conditional); 0.5 is indistinguishable.}\label{tab:first}
+\begin{tabular}{@{}lccc@{}}\toprule
+flag head & log loss (marginal) & AUC & rate sample / surrogate\\ \midrule
+neutrino slice found & 0.397 (0.684) & 0.90 & 0.431 / 0.427\\
+matched $\mid$ slice & 0.418 (0.683) & 0.87 & 0.569 / 0.576\\
+$\nu_e$ hypothesis $\mid$ slice & 0.184 (0.332) & 0.92 & 0.103 / 0.090\\
+beam flash found $\mid$ slice & 0.393 (0.390) & 0.52 & 0.868 / 0.878\\
+$N_\text{PFP}$ (10 classes) & 1.318 (1.612) & accuracy 0.47 (0.32) & \\
+\midrule
+event flow column & W1 (model space) & sample q16 / 50 / 84 & surrogate q16 / 50 / 84\\ \midrule
+vertex residual $x$ (cm) & 0.08 & 1.40 / 2.37 / 3.61 & 1.36 / 2.45 / 3.74\\
+vertex residual $y$ (cm) & 0.08 & $-2.67$ / $-0.12$ / 2.61 & $-2.28$ / $-0.16$ / 2.32\\
+vertex residual $z$ (cm) & 0.15 & $-0.38$ / 0.04 / 1.26 & $-0.45$ / 0.14 / 1.16\\
+$\nu$ score & 0.06 & 0.04 / 0.41 / 0.97 & 0.04 / 0.45 / 0.97\\
+flash-match score & 0.07 & 1.3 / 5.4 / 31.6 & 1.4 / 5.9 / 31.1\\
+flash PE & 0.03 & 446 / 1548 / 4155 & 453 / 1544 / 4334\\
+flash $y$ (cm) & 0.04 & $-13.3$ / $-0.7$ / 13.0 & $-14.1$ / $-0.4$ / 13.2\\
+flash $z$ (cm) & 0.03 & 227 / 538 / 858 & 227 / 541 / 834\\
+flash time ($\mu$s) & 0.10 & 3.83 / 4.30 / 4.79 & 3.86 / 4.36 / 4.77\\
+\midrule
+closure classifier AUC & marginal 0.67 & conditional 0.64 & no single variable above 0.58\\
+\bottomrule\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\textwidth]{figures/event00_marginals.png}
+\caption{Event stage on file 00, test split: the nine event-flow columns in model space (open sample black,
+surrogate orange, log scale) and the PFParticle multiplicity.}\label{fig:first}
+\end{figure}
+
+What this first pass says. The slice, origin and $\nu_e$ heads carry real information about the interaction (AUC 0.87
+to 0.92); the flash flag does not (0.52), as expected, since a beam flash's presence depends on the overlaid readout
+rather than on the interaction, and the head simply reproduces its rate. The event flow reproduces every column's
+marginal, including the space-charge shift in the $x$ residual and the box-shaped beam window of the flash time (after
+a logit transform onto the window; before it the flow smeared the edges and the classifier found it at AUC 0.70). The
+remaining closure AUC of 0.67 on 34\,k training events is where the MINERvA model stood on a similar sample size
+before the full dataset; the dvtx\_$z$ and flash-time columns are the first to look at. Two caveats carry over: the
+direction input is still the Geant4 displacement (Section~\ref{sec:status}), and the PFParticle level is not modelled
+yet.
 
 \paragraph{Where we are.} Reading the schematic from the top left:
 \begin{description}[nosep, leftmargin=28mm, style=sameline]
 \item[\sdone] the sample is reachable in place (\code{xsum.io.h5.Sample}, local or over HTTP), with a manifest and a
-  guarded fetcher (\code{fetch\_zenodo.py}); its structure and statistics are measured (\code{h5\_summary.py},
-  Sections~\ref{sec:content}--\ref{sec:measured}); the event-level slimming into truth and reco Parquet is written
-  (\code{slim.py}) and tested on a 300-event extract of file 00 (\code{tests/}, seven tests).
-\item[\spart] the model's input and its heads are designed (Section~\ref{sec:design}, Figure~\ref{fig:model}), nothing more.
+  guarded fetcher (\code{fetch\_zenodo.py}); file 00 is downloaded, verified, slimmed and measured
+  (\code{pipeline\_file00.sh}); the event-level slimming streams in event chunks (\code{slim.py}); the training
+  dataset with the design's targets and the subrun split (\code{xsum.data}); the event stage of the model, its
+  training loop and its evaluation (\code{xsum.models}, \code{xsum.train}, \code{train\_event.py}), trained once on
+  file 00 (Section~\ref{sec:first}); eleven tests.
+\item[\spart] the PFParticle set flow is designed (Figure~\ref{fig:model}) and waits on the hit-level columns; the
+  decoder exists only as the inverse transform.
 \item[\smiss] the hit-level slimming (per-PFParticle charge and extent from $6.7\times10^8$ hit links per file, one
-  file at a time), the companion truth from the artroot files (directions, POT, interaction mode), the training
-  dataset and split, the model and its training chain, the decoder and output file, the validation suite, and the
-  path for other generators.
+  file at a time), the companion truth from the artroot files (directions, POT, interaction mode), the output file in
+  the open sample's layout with the wrong-slice pool, the ensemble and its universes, the validation beyond the
+  closure of Section~\ref{sec:first}, and the path for other generators.
 \end{description}
 
 \section{Open questions}\label{sec:open}

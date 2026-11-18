@@ -33,8 +33,8 @@
 \node[done, right=of char] (slim) {\textbf{Slim, event level}\\ \texttt{slim.py} $\Rightarrow$ Parquet\\ \emph{truth}: event table + Geant4 primaries (class, $T$, direction proxy)\\ \emph{reco}: $\nu$ slice, its PFParticles, beam flash};
 \node[miss, right=of slim] (hits) {\textbf{Slim, hit level}\\ per PFParticle from \texttt{hit\_table} + \texttt{pandoraHit\_table} ($6.7\times10^8$ links per file): charge per plane, hit count, extent, end point\\ one 11 GB file at a time};
 
-\node[miss, below=of read] (art) {\textbf{Companion truth} (artroot, xrootd)\\ initial momentum vectors of the primaries (the only generator-level direction), POT, interaction mode\\ one pass $\Rightarrow$ Parquet; required before deployment};
-\node[miss, below=of slim] (ds) {\textbf{Dataset}\\ padded primary sets + global context; targets: slice flag, slice vector, $N_\text{PFP}$, PFParticle rows\\ split by subrun (80/10/10)};
+\node[miss, below=of read] (art) {\textbf{Companion truth} (artroot, xrootd)\\ initial momenta of the primaries (the generator-level direction), POT, interaction mode\\ one pass $\Rightarrow$ Parquet};
+\node[done, below=of slim] (ds) {\textbf{Dataset}\\ padded primary sets + global context; targets: slice flag, slice vector, $N_\text{PFP}$, PFParticle rows\\ split by subrun (80/10/10)};
 
 \draw[arr] (zen) -- (read);
 \draw[arr] (read) -- (char);
@@ -46,11 +46,11 @@
 \draw[arrm] (hits.south) |- (ds.east);
 
 % ================= band 2: the model =================
-\node[part, below=14mm of art.south west, anchor=north west, xshift=-37mm-7mm] (inp) {\textbf{Input} (defined)\\ per primary: class (14), $|\vec p|$; direction: G4 displacement for now, artroot momentum for deployment\\ global: the true vertex $\vec v$ only\\ neutrons kept; $T \ge 10$\,MeV};
-\node[miss, right=of inp] (enc) {\textbf{Set encoder}\\ transformer over the primaries with a global token (as in XSuM-MINERvA)};
-\node[miss, right=of enc] (heads) {\textbf{Heads} (Figure 2)\\ flags: $\nu$ slice found, beam flash found; slice origin: matched / wrong\\ $N_\text{PFP}$ (1--10)\\ event flow: vertex residual, scores, flash\\ PFParticle set flow: track/shower score, start point, hit-derived charge and extent};
+\node[done, below=14mm of art.south west, anchor=north west, xshift=-37mm-7mm] (inp) {\textbf{Input}\\ per primary: class (14), $|\vec p|$; direction: G4 displacement for now, artroot momentum for deployment\\ global: the true vertex $\vec v$ only\\ neutrons kept; $T \ge 10$\,MeV};
+\node[done, right=of inp] (enc) {\textbf{Set encoder}\\ transformer over the primaries with a global token (as in XSuM-MINERvA)};
+\node[part, right=of enc] (heads) {\textbf{Heads} (Figure 2; event level written and trained once, PFParticle set flow not)\\ flags: $\nu$ slice found, beam flash found; slice origin: matched / wrong\\ $N_\text{PFP}$ (1--10)\\ event flow: vertex residual, scores, flash\\ PFParticle set flow: track/shower score, start point, hit-derived charge and extent};
 \node[miss, right=of heads] (dec) {\textbf{Decoder, output file}\\ inverse transforms; a file in the open-sample table layout (event, pandoraPrimary, pandoraPfp, opflash) with the input events as truth};
-\node[miss, right=of dec] (train) {\textbf{Training and ensemble}\\ event stage, PFParticle stage; seeds for the model uncertainty; universes and weights as in XSuM-MINERvA};
+\node[part, right=of dec] (train) {\textbf{Training and ensemble}\\ event stage written, run on file 00 (37 s); PFParticle stage, seeds and universes not};
 
 \draw[arr] (inp) -- (enc);
 \draw[arrm] (enc) -- (heads);
@@ -69,7 +69,9 @@
 
 % ================= "we are here" =================
 \node[draw=chere, line width=1.2pt, rounded corners=2pt, fill=white, font=\scriptsize\bfseries, text=chere, inner sep=3pt, above=4mm of hits.north] (here) {we are here};
-\draw[-{Latex[length=2mm]}, line width=1.2pt, draw=chere] (here.south) -- ($(slim.north east)!0.5!(hits.north west)+(0,0)$);
+\draw[-{Latex[length=2mm]}, line width=1.2pt, draw=chere] (here.south) -- (hits.north);
+\node[draw=chere, line width=1.2pt, rounded corners=2pt, fill=white, font=\scriptsize\bfseries, text=chere, inner sep=3pt, anchor=south east] (here2) at ([xshift=-2mm, yshift=4mm]heads.north east) {we are here};
+\draw[-{Latex[length=2mm]}, line width=1.2pt, draw=chere] (here2.south) -- ([xshift=-8mm]heads.north);
 
 % ================= band labels and backgrounds =================
 \begin{scope}[on background layer]
@@ -85,7 +87,7 @@
 \matrix[draw=ink!30, rounded corners=2pt, fill=white, inner sep=3pt, column sep=2mm, row sep=1mm, anchor=north west, font=\tiny] at ([yshift=-5mm]hits.south west) {
   \node[ext, text width=6mm, minimum height=3mm, inner sep=1pt]{}; & \node{external, read in place}; \\
   \node[done, text width=6mm, minimum height=3mm, inner sep=1pt]{}; & \node{written and tested}; \\
-  \node[part, text width=6mm, minimum height=3mm, inner sep=1pt]{}; & \node{defined on paper}; \\
+  \node[part, text width=6mm, minimum height=3mm, inner sep=1pt]{}; & \node{partly written}; \\
   \node[miss, text width=6mm, minimum height=3mm, inner sep=1pt]{}; & \node{not started}; \\
 };
 \end{tikzpicture}
