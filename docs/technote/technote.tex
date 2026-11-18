@@ -112,6 +112,15 @@ truth file for validation only. \code{particle\_table} holds the Geant4
 particles; the rows with \code{start\_process == "primary"} (parent 0) are the particles that emerge from the
 neutrino interaction, i.e.\ the generator's final state after final-state interactions as handed to Geant4, and are the
 surrogate's input. The table stores the momentum magnitude and the start and end positions, not the momentum vector.
+Two checks on file 00 establish what that list is. The stored momentum is the initial one: for CC $\nu_\mu$ events
+the muon primary's energy from $|\vec p|$ equals the event table's \code{lep\_energy} to $10^{-8}$\,GeV in
+\pct{99.9} of events. And the list is complete only where the interaction is: inside the active volume \pct{99.3} of
+CC $\nu_\mu$ events have their muon primary (a third of the rest fall under the 10\,MeV cut) and events carry 4.2
+primaries on average, while outside it the table keeps only the primaries that reach the TPC: 1.8 per event just
+outside the volume, 0.8 beyond 50\,cm, and \pct{17} of all events have none. For an event outside the active volume
+the input set is therefore \emph{not} the generator's final state but the part of it Geant4 propagated into the TPC,
+something a generator cannot supply; the surrogate is deployable on the active volume (with a margin) only, and the
+\code{--active-only} option of the training scripts restricts it to that.
 \code{edep\_table} links energy deposits to hits and particles: the hit-level ground truth, not needed by a surrogate.
 
 \paragraph{Reconstruction side.} \code{pandoraPrimary\_table} lists every Pandora slice of the readout (about 30 per
@@ -415,9 +424,11 @@ more files are the lever.
   HDF5 files.
 \item \textbf{Hit-level targets.} The present per-plane hit count, charge, wire span and time span are a first
   choice; a 3D length and end point would need the wire crossings between planes.
-\item \textbf{Wrong-slice events.} The \pct{20} of out-of-volume events with a ``neutrino'' slice are cosmic slices.
-  The surrogate must either model them (a wrong-slice class with a vertex drawn from the cosmic distribution) or be
-  restricted to the active volume; inside the volume the same tail exists at a lower rate.
+\item \textbf{Out-of-volume events.} Their primary list is truncated to what reaches the TPC
+  (Section~\ref{sec:content}), so a generator cannot reproduce their input, and the \pct{23} of them with a ``neutrino''
+  slice are cosmic slices. The deployment region should be the active volume with a margin; the wrong-slice tail inside
+  the volume is modelled by the origin head. What margin, and whether the events just outside the volume (whose
+  particles do enter the TPC) can be kept with a Geant4-free definition of the input, is open.
 \item \textbf{Split.} Events are grouped by run and subrun (120 subruns in 2\,000 events); split by subrun as in MINERvA
   so that overlay-correlated readouts stay together.
 \end{enumerate}
