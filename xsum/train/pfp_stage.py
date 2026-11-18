@@ -32,7 +32,8 @@ def make_loaders(ds, tf, ptf, bs, seed, workers=2, bucket=True):
 
 
 def train(stems, out_dir, init_from, epochs=12, bs=512, lr=2e-4, seed=0, device="cuda", pfp_layers=3, log_every=100,
-          init_seed=None, bucket=True, workers=2):
+          init_seed=None, bucket=True, workers=2, only_pfp=False):
+    """only_pfp: train the set flow alone, every event-stage parameter frozen (the heads overfit a small sample long before the set flow converges)."""
     out = pathlib.Path(out_dir); out.mkdir(parents=True, exist_ok=True)
     init_seed = seed if init_seed is None else init_seed; torch.manual_seed(init_seed); np.random.seed(init_seed); t0 = time.time()
     ck = torch.load(init_from, map_location=device, weights_only=False); c = ck["config"]
@@ -46,11 +47,14 @@ def train(stems, out_dir, init_from, epochs=12, bs=512, lr=2e-4, seed=0, device=
     model = Surrogate(c["d_model"], 4, c["n_layers"], c["flow_hidden"], c["flow_layers"], n_classes=c["n_classes"], pfp=True, pfp_layers=pfp_layers).to(device)
     missing, unexpected = model.load_state_dict(ck["model"], strict=False)
     print(f"warm start from {init_from}: {len(missing)} new tensors (the set flow), {len(unexpected)} unexpected", flush=True)
-    opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
+    if only_pfp:
+        for n_, p_ in model.named_parameters(): p_.requires_grad = n_.startswith("pfpflow.")
+    opt = torch.optim.AdamW([p_ for p_ in model.parameters() if p_.requires_grad], lr=lr, weight_decay=1e-4)
     steps = max(1, epochs * len(ld["train"]))
     sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=lr, total_steps=steps, pct_start=0.05)
     hist, best, step = [], np.inf, 0
-    cfg = dict(c, pfp=True, pfp_layers=pfp_layers)
+    cfg = dict(c, pfp=True, pfp_layers=pfp_layers, only_pfp=only_pfp)
+    select = (lambda va: va["pfp"]) if only_pfp else (lambda va: sum(va.values()))
     for ep in range(epochs):
         model.train(); agg = {}
         for b in ld["train"]:
@@ -63,8 +67,8 @@ def train(stems, out_dir, init_from, epochs=12, bs=512, lr=2e-4, seed=0, device=
             for b in ld["val"]:
                 L = model.losses(to_dev(b, device))
                 for k, v in L.items(): va[k] = va.get(k, 0) + v.item() / len(ld["val"])
-        tot = sum(va.values()); hist.append({"epoch": ep, "train": {k: v / max(1, len(ld["train"])) for k, v in agg.items()}, "val": va, "time": time.time() - t0})
-        print(f"epoch {ep}: val " + " ".join(f"{k} {v:.4f}" for k, v in va.items()) + f"  total {tot:.4f}  [{time.time()-t0:.0f} s]", flush=True)
+        tot = select(va); hist.append({"epoch": ep, "train": {k: v / max(1, len(ld["train"])) for k, v in agg.items()}, "val": va, "time": time.time() - t0})
+        print(f"epoch {ep}: val " + " ".join(f"{k} {v:.4f}" for k, v in va.items()) + f"  selected {tot:.4f}  [{time.time()-t0:.0f} s]", flush=True)
         if np.isfinite(tot) and tot < best:
             best = tot
             torch.save({"model": model.state_dict(), "transform": tf.state(), "pfp_transform": ptf.state(), "config": cfg}, out / "model.pt")

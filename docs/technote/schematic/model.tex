@@ -50,13 +50,13 @@
   matched slice: vertex residual $\vec v_\text{slice}-\vec v$ (3) [mm-scale core plus the space-charge shift, $\sim$1\,cm in $x$]; $\nu$ score (logit); flash-match score ($\log$)\\
   beam flash: $\log\text{PE}$, barycentre $y_\text{fl}$, $z_\text{fl}$ \quad conditioned on $z$, the flags, the origin and $N_\text{PFP}$\\
   wrong slice: vertex and scores drawn from the open sample's cosmic-slice pool};
-\node[head, wait, below=8mm of ev.south west, anchor=north west] (pf) {\textbf{PFParticle set flow} (masked flow matching, $N_\text{PFP}\times 9$)\\
+\node[head, same, below=8mm of ev.south west, anchor=north west] (pf) {\textbf{PFParticle set flow} (masked flow matching, $N_\text{PFP}\times 21$)\\
   transformer, 3 layers, over the $N_\text{PFP}$ tokens; cross-attention to the primary embeddings $h_i$\\
-  per PFParticle: track/shower score (logit), start point minus slice vertex (3)\\
-  \textcolor{cwait}{from the hit tables (not yet curated): $\log$ charge per plane (3), $\log N_\text{hits}$, extent along the direction}};
+  per PFParticle: track/shower score (logit, with flags for the exact 0 and 1), start point minus slice vertex (3),\\
+  per wire plane: has-hits flag, $\log N_\text{hits}$, $\log$ charge, wire span, time span (from the hit tables)};
 
 % ---------------- decoder ----------------
-\node[box, draw=cout, text width=74mm, anchor=north west] (dec) at ($(enc.south west |- pf.south)+(0,-14mm)$) {\textbf{Decoder}\\
+\node[box, draw=cout, dashed, text width=74mm, anchor=north west] (dec) at ($(enc.south west |- pf.south)+(0,-14mm)$) {\textbf{Decoder} (not written)\\
   inverse transforms; \texttt{pfp\_pdg} from the track/shower score\\
   writes the open sample's tables: \texttt{event}, \texttt{pandoraPrimary}, \texttt{pandoraPfp}, \texttt{opflash}, with every input event in \texttt{event\_table} (the denominator)};
 
@@ -83,7 +83,6 @@
 \matrix[draw=ink!30, rounded corners=2pt, fill=white, inner sep=3pt, column sep=2mm, row sep=1mm, font=\scriptsize, below=3mm of unc.south west, anchor=north west] {
   \node[box, same, text width=7mm, minimum height=3mm, inner sep=1pt]{}; & \node{ported from XSuM-MINERvA unchanged}; \\
   \node[box, new, text width=7mm, minimum height=3mm, inner sep=1pt]{}; & \node{new for MicroBooNE}; \\
-  \node[box, wait, text width=7mm, minimum height=3mm, inner sep=1pt]{}; & \node{waits on the hit-level curation}; \\
 };
 \end{tikzpicture}
 \end{document}

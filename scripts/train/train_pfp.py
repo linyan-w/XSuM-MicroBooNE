@@ -10,6 +10,7 @@ if __name__ == "__main__":
     ap.add_argument("--epochs", type=int, default=12); ap.add_argument("--bs", type=int, default=512); ap.add_argument("--lr", type=float, default=2e-4)
     ap.add_argument("--pfp-layers", type=int, default=3); ap.add_argument("--steps", type=int, default=64); ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--eval-only", action="store_true"); ap.add_argument("--device", default="cuda"); ap.add_argument("--workers", type=int, default=2)
+    ap.add_argument("--only-pfp", action="store_true", help="train the set flow alone, the event stage frozen")
     a = ap.parse_args()
     from xsum.train.pfp_stage import train, evaluate, load_model, make_loaders
     from xsum.data.dataset import EventDataset
@@ -18,7 +19,7 @@ if __name__ == "__main__":
         model, tf, ptf, c = load_model(pathlib.Path(a.out_dir) / "model.pt", a.device)
         ds = EventDataset(stems, active_only=c["active_only"]); idx, tds, ld = make_loaders(ds, tf, ptf, a.bs, 0, a.workers)
     else:
-        ds, tf, ptf, idx, ld, out = train(stems, a.out_dir, a.init, a.epochs, a.bs, a.lr, 0, a.device, a.pfp_layers, init_seed=a.seed, workers=a.workers)
+        ds, tf, ptf, idx, ld, out = train(stems, a.out_dir, a.init, a.epochs, a.bs, a.lr, 0, a.device, a.pfp_layers, init_seed=a.seed, workers=a.workers, only_pfp=a.only_pfp)
         model, tf, ptf, c = load_model(pathlib.Path(a.out_dir) / "model.pt", a.device)
     M = evaluate(model, tf, ptf, ds, idx["test"], ld["test"], a.out_dir, a.device, a.steps)
     print(json.dumps({"n_pfp": [M["n_pfp_real"], M["n_pfp_sampled"]], "auc_pfp_decoded": round(M["classifier_auc_pfp"], 4), "auc_pfp_model_continuous": round(M["classifier_auc_pfp_model_continuous"], 4),

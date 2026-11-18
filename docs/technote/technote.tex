@@ -212,7 +212,7 @@ units & MeV, mm & GeV, cm, ticks\\
 \begin{sidewaysfigure}[p]\centering
 \includegraphics[width=\textheight]{schematic/schematic.pdf}
 \caption{The chain from the open sample to an analysis on surrogate events, with the status of every step on
-18 November 2026 (after the first training). Band 1 is the sample and its curation, band 2 the model, band 3 its validation and use. Green boxes
+18 November 2026 (after the two trainings on file 00). Band 1 is the sample and its curation, band 2 the model, band 3 its validation and use. Green boxes
 are written and tested in the repository, orange ones are partly written, dashed boxes are not started; the
 blue box is the external sample, read in place.}\label{fig:schematic}
 \end{sidewaysfigure}
@@ -240,8 +240,8 @@ not used.
 \subsection{Design}\label{sec:design}
 
 Figure~\ref{fig:model} is the proposed model, drawn in the layout of the XSuM-MINERvA schematic so that the two can be
-read side by side. Its event stage (everything but the PFParticle set flow) is implemented and trained once
-(Section~\ref{sec:first}); the PFParticle set flow is design only. The set encoder, the multiplicity head, the flow
+read side by side. Every head of it is implemented and trained on file 00 (Sections~\ref{sec:first}
+and~\ref{sec:pfp}); the decoder is not written. The set encoder, the multiplicity head, the flow
 classes, the decoder's role and the uncertainty treatment port unchanged; the heads and the columns they produce are
 where MicroBooNE differs. Sampling goes top to bottom, every head conditioned on what was sampled above it:
 \begin{enumerate}[nosep]
@@ -271,8 +271,8 @@ gives universes with one weight per flag (slice found, flash found, origin, $\nu
 \begin{sidewaysfigure}[p]\centering
 \includegraphics[width=\textheight]{schematic/model.pdf}
 \caption{The proposed surrogate, in the layout of the XSuM-MINERvA schematic. Green parts port unchanged, orange parts
-are new for MicroBooNE, the dashed part waits on the hit-level curation. Everything but the dashed part is implemented
-and was trained once on file 00 (Section~\ref{sec:first}).}
+are new for MicroBooNE. Every head is implemented and trained on file 00 (Sections~\ref{sec:first} and~\ref{sec:pfp});
+the decoder is not written.}
 \label{fig:model}
 \end{sidewaysfigure}
 
@@ -331,6 +331,60 @@ before the full dataset; the dvtx\_$z$ and flash-time columns are the first to l
 direction input is still the Geant4 displacement (Section~\ref{sec:status}), and the PFParticle level is not modelled
 yet.
 
+\subsection{Second training: the PFParticle stage on file 00}\label{sec:pfp}
+
+The hit tables of file 00 were slimmed (\code{scripts/curate/slim\_hits.py}: the $6.7\times10^8$ hit links in 69\,s,
+3\,MB of Parquet) into per-PFParticle hit counts, summed charge, wire span and time span per wire plane, plus the
+slice totals. With them each PFParticle is a record of 16 raw columns (track/shower score, start point relative to
+the slice vertex, and four hit quantities on each of three planes), transformed into 21 model columns: the score's
+logit with two flags for the \pct{10.5} of PFParticles at exactly 1 and the \pct{2} at exactly 0, the asinh-compressed
+start-point offset, a has-hits flag per plane, and the logs of the dequantised counts and spans and of the charge, with
+noise filling a plane that has no hits (the flag-and-noise construction of the MINERvA prong transform). The set flow
+of Figure~\ref{fig:model} was then trained on top of the event-stage model of Section~\ref{sec:first}, every parameter
+fine-tuned, for 20 epochs (102\,s). Table~\ref{tab:pfp} and Figure~\ref{fig:pfp} are the test split, flat over
+PFParticles (4\,889 real, 4\,852 sampled).
+
+\begin{table}[htbp]\centering\small
+\caption{PFParticle stage on file 00, test split. W1 in model space and the 16/50/84 quantiles in physical units on the
+collection plane (plane 2); the rates of the flags; and the closure classifier on the decoded records (score, offset,
+and the log of each hit quantity, zeros where a plane has no hits).}\label{tab:pfp}
+\begin{tabular}{@{}lccc@{}}\toprule
+column & W1 (model space) & sample q16 / 50 / 84 & surrogate q16 / 50 / 84\\ \midrule
+track/shower score & 0.21 & 0.19 / 0.92 / 1.00 & 0.21 / 0.93 / 1.00\\
+start point $- $ slice vertex, $x$ (cm) & 0.26 & $-1.24$ / $-0.01$ / 0.88 & $-0.98$ / $-0.02$ / 0.78\\
+start point $- $ slice vertex, $z$ (cm) & 0.26 & $-0.37$ / 0.18 / 9.75 & $-0.60$ / 0.31 / 4.75\\
+hits, plane 2 & 0.03 & 11 / 57 / 307 & 8 / 59 / 294\\
+charge, plane 2 (ADC) & 0.02 & 2344 / 10230 / 34829 & 1878 / 10030 / 34782\\
+wire span, plane 2 & 0.06 & 8 / 52 / 331 & 6 / 55 / 306\\
+time span, plane 2 (ticks) & 0.04 & 31 / 190 / 932 & 24 / 182 / 874\\
+\midrule
+flag & rate, sample & rate, surrogate & \\ \midrule
+has hits on plane 0 / 1 / 2 & 0.90 / 0.92 / 0.95 & 0.87 / 0.89 / 0.91 & \\
+score exactly 1 / exactly 0 & 0.104 / 0.020 & 0.149 / 0.052 & \\
+\midrule
+closure classifier AUC & decoded records 0.95 & single columns 0.52--0.66 & per-event sums W1 0.13--0.17\\
+\bottomrule\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\textwidth]{figures/pfp00_marginals.png}
+\caption{PFParticle stage on file 00, test split: the 21 model columns, flat over PFParticles (open sample black,
+surrogate orange, log scale).}\label{fig:pfp}
+\end{figure}
+
+What this says. Every marginal is reproduced to a few percent, the per-event sums of hits and charge over the
+PFParticles to W1 0.13--0.17, and no single decoded column separates the two samples beyond AUC 0.66, but the joint
+record does, at 0.95: the surrogate's PFParticles are individually plausible while the tight relations among a real
+PFParticle's columns (charge against hits, span against hits, the three planes against each other) are not yet
+reproduced, and the flag rates are off by a few percent. Two things were learned on the way. The first closure test
+scored 0.97 for a wrong reason: the real rows were float32 and the decoded surrogate rows float64, and a tree
+classifier separated the two representations of the same integer's logarithm on its low bits; the test now casts both
+sides. And a six-times longer fine-tuning of every parameter overfits the sample: the event-stage heads' validation
+losses rise after 30 epochs (the origin head from 0.37 to 1.6) while the set-flow loss improves only from 1.35 to
+1.21 and the closure does not move. File 00 (34\,k training events, 38\,k PFParticles) is the data limit of the
+PFParticle level; the XSuM-MINERvA prong stage had 15.8\,M events. The levers are more files, and training the set flow
+alone with the event stage frozen (\code{train\_pfp.py --only-pfp}).
+
 \paragraph{Where we are.} Reading the schematic from the top left:
 \begin{description}[nosep, leftmargin=28mm, style=sameline]
 \item[\sdone] the sample is reachable in place (\code{xsum.io.h5.Sample}, local or over HTTP), with a manifest and a
@@ -338,13 +392,13 @@ yet.
   (\code{pipeline\_file00.sh}); the event-level slimming streams in event chunks (\code{slim.py}); the training
   dataset with the design's targets and the subrun split (\code{xsum.data}); the event stage of the model, its
   training loop and its evaluation (\code{xsum.models}, \code{xsum.train}, \code{train\_event.py}), trained once on
-  file 00 (Section~\ref{sec:first}); eleven tests.
-\item[\spart] the PFParticle set flow is designed (Figure~\ref{fig:model}) and waits on the hit-level columns; the
-  decoder exists only as the inverse transform.
-\item[\smiss] the hit-level slimming (per-PFParticle charge and extent from $6.7\times10^8$ hit links per file, one
-  file at a time), the companion truth from the artroot files (directions, POT, interaction mode), the output file in
-  the open sample's layout with the wrong-slice pool, the ensemble and its universes, the validation beyond the
-  closure of Section~\ref{sec:first}, and the path for other generators.
+  file 00 (Section~\ref{sec:first}); the hit-level slimming (\code{slim\_hits.py}) and the PFParticle set flow with
+  its second training stage (\code{train\_pfp.py}, Section~\ref{sec:pfp}); twelve tests.
+\item[\spart] the training chain: both stages run on one file, no ensemble yet; the decoder exists only as the inverse
+  transforms.
+\item[\smiss] the output file in the open sample's layout with the wrong-slice pool, the companion truth from the
+  artroot files (directions, POT, interaction mode), the ensemble and its universes, the validation beyond the closures
+  of Sections~\ref{sec:first} and~\ref{sec:pfp}, and the path for other generators.
 \end{description}
 
 \section{Open questions}\label{sec:open}
@@ -357,8 +411,8 @@ yet.
   the companion also lets that leak be measured.
 \item \textbf{Exposure.} A POT per file, or a per-event weight, is needed for any cross-section use; it is not in the
   HDF5 files.
-\item \textbf{Hit-level targets.} Which per-PFParticle quantities to derive from the hit tables, and the disk budget for
-  doing so: 11\,GB per file, streamed one at a time.
+\item \textbf{Hit-level targets.} The present per-plane hit count, charge, wire span and time span are a first
+  choice; a 3D length and end point would need the wire crossings between planes.
 \item \textbf{Wrong-slice events.} The \pct{20} of out-of-volume events with a ``neutrino'' slice are cosmic slices.
   The surrogate must either model them (a wrong-slice class with a vertex drawn from the cosmic distribution) or be
   restricted to the active volume; inside the volume the same tail exists at a lower rate.

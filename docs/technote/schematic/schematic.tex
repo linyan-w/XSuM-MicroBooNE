@@ -31,7 +31,7 @@
 \node[done, right=of zen] (read) {\textbf{Read / fetch}\\ \texttt{xsum.io.h5.Sample}: tables by event range, local file or Zenodo URL over HTTP ranges\\ \texttt{fetch\_zenodo.py}: md5, disk reserve};
 \node[done, right=of read] (char) {\textbf{Characterise}\\ \texttt{h5\_summary.py}: table shapes, flavour mix, volume, primaries, slices, flashes (first 2\,000 events of file 00)\\ $\Rightarrow$ technote Section 2};
 \node[done, right=of char] (slim) {\textbf{Slim, event level}\\ \texttt{slim.py} $\Rightarrow$ Parquet\\ \emph{truth}: event table + Geant4 primaries (class, $T$, direction proxy)\\ \emph{reco}: $\nu$ slice, its PFParticles, beam flash};
-\node[miss, right=of slim] (hits) {\textbf{Slim, hit level}\\ per PFParticle from \texttt{hit\_table} + \texttt{pandoraHit\_table} ($6.7\times10^8$ links per file): charge per plane, hit count, extent, end point\\ one 11 GB file at a time};
+\node[done, right=of slim] (hits) {\textbf{Slim, hit level}\\ \texttt{slim\_hits.py}: per PFParticle from \texttt{hit\_table} + \texttt{pandoraHit\_table} ($6.7\times10^8$ links per file): hits, charge, wire and time span per plane; slice totals};
 
 \node[miss, below=of read] (art) {\textbf{Companion truth} (artroot, xrootd)\\ initial momenta of the primaries (the generator-level direction), POT, interaction mode\\ one pass $\Rightarrow$ Parquet};
 \node[done, below=of slim] (ds) {\textbf{Dataset}\\ padded primary sets + global context; targets: slice flag, slice vector, $N_\text{PFP}$, PFParticle rows\\ split by subrun (80/10/10)};
@@ -48,9 +48,9 @@
 % ================= band 2: the model =================
 \node[done, below=14mm of art.south west, anchor=north west, xshift=-37mm-7mm] (inp) {\textbf{Input}\\ per primary: class (14), $|\vec p|$; direction: G4 displacement for now, artroot momentum for deployment\\ global: the true vertex $\vec v$ only\\ neutrons kept; $T \ge 10$\,MeV};
 \node[done, right=of inp] (enc) {\textbf{Set encoder}\\ transformer over the primaries with a global token (as in XSuM-MINERvA)};
-\node[part, right=of enc] (heads) {\textbf{Heads} (Figure 2; event level written and trained once, PFParticle set flow not)\\ flags: $\nu$ slice found, beam flash found; slice origin: matched / wrong\\ $N_\text{PFP}$ (1--10)\\ event flow: vertex residual, scores, flash\\ PFParticle set flow: track/shower score, start point, hit-derived charge and extent};
+\node[done, right=of enc] (heads) {\textbf{Heads} (Figure 2)\\ flags: $\nu$ slice found, beam flash found; slice origin: matched / wrong\\ $N_\text{PFP}$ (1--10)\\ event flow: vertex residual, scores, flash\\ PFParticle set flow: track/shower score, start point, hits and charge per plane};
 \node[miss, right=of heads] (dec) {\textbf{Decoder, output file}\\ inverse transforms; a file in the open-sample table layout (event, pandoraPrimary, pandoraPfp, opflash) with the input events as truth};
-\node[part, right=of dec] (train) {\textbf{Training and ensemble}\\ event stage written, run on file 00 (37 s); PFParticle stage, seeds and universes not};
+\node[part, right=of dec] (train) {\textbf{Training and ensemble}\\ event stage and PFParticle stage written and run on file 00 (minutes); seeds and universes not};
 
 \draw[arr] (inp) -- (enc);
 \draw[arrm] (enc) -- (heads);
@@ -68,10 +68,9 @@
 \draw[arrm] (gen) -- (ana);
 
 % ================= "we are here" =================
-\node[draw=chere, line width=1.2pt, rounded corners=2pt, fill=white, font=\scriptsize\bfseries, text=chere, inner sep=3pt, above=4mm of hits.north] (here) {we are here};
-\draw[-{Latex[length=2mm]}, line width=1.2pt, draw=chere] (here.south) -- (hits.north);
-\node[draw=chere, line width=1.2pt, rounded corners=2pt, fill=white, font=\scriptsize\bfseries, text=chere, inner sep=3pt, anchor=south east] (here2) at ([xshift=-2mm, yshift=4mm]heads.north east) {we are here};
-\draw[-{Latex[length=2mm]}, line width=1.2pt, draw=chere] (here2.south) -- ([xshift=-8mm]heads.north);
+\node[draw=chere, line width=1.2pt, rounded corners=2pt, fill=white, font=\scriptsize\bfseries, text=chere, inner sep=3pt, anchor=south west] (here) at ([xshift=2mm, yshift=4mm]dec.north west) {we are here};
+\draw[-{Latex[length=2mm]}, line width=1.2pt, draw=chere] (here.south) -- ([xshift=8mm]dec.north);
+\draw[-{Latex[length=2mm]}, line width=1.2pt, draw=chere] (here.east) -| ([xshift=-8mm]train.north);
 
 % ================= band labels and backgrounds =================
 \begin{scope}[on background layer]
