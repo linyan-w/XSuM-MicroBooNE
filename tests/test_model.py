@@ -60,7 +60,8 @@ def test_pfp_stage(slim_stem, tmp_path):
     assert M["n_pfp_sampled"] > 0 and np.isfinite([v["w1"] for v in M["pfp_model_space"].values()]).all()
     # round trip of the PFParticle transform on real rows
     rng = np.random.default_rng(0); P = ds2.pfp[ds2.pfp_mask]; x = ptf.forward(P, rng); Pb = ptf.inverse(x)
-    inside = (np.abs(x[:, 1:4]) < 7.99).all(1)          # the model space is clipped at +-8
+    inside = (np.abs(x[:, 3:6]) < 7.99).all(1)          # the model space is clipped at +-8
     assert inside.mean() > 0.9 and np.allclose(Pb[inside, 1:4], P[inside, 1:4], atol=0.05, rtol=1e-3)
+    assert np.array_equal(Pb[:, 0] >= 1 - 1e-6, P[:, 0] >= 1 - 1e-6) and np.array_equal(Pb[:, 4::4], P[:, 4::4])   # score edges and hit counts round-trip
     has = P[:, 4::4] > 0
     assert np.array_equal(Pb[:, 4::4] > 0, has)

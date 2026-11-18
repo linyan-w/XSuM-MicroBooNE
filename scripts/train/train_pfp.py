@@ -21,6 +21,6 @@ if __name__ == "__main__":
         ds, tf, ptf, idx, ld, out = train(stems, a.out_dir, a.init, a.epochs, a.bs, a.lr, 0, a.device, a.pfp_layers, init_seed=a.seed, workers=a.workers)
         model, tf, ptf, c = load_model(pathlib.Path(a.out_dir) / "model.pt", a.device)
     M = evaluate(model, tf, ptf, ds, idx["test"], ld["test"], a.out_dir, a.device, a.steps)
-    print(json.dumps({"n_pfp": [M["n_pfp_real"], M["n_pfp_sampled"]], "auc_pfp": round(M["classifier_auc_pfp"], 4),
+    print(json.dumps({"n_pfp": [M["n_pfp_real"], M["n_pfp_sampled"]], "auc_pfp_decoded": round(M["classifier_auc_pfp"], 4), "auc_pfp_model_continuous": round(M["classifier_auc_pfp_model_continuous"], 4),
                       "w1": {k: round(v["w1"], 3) for k, v in M["pfp_model_space"].items()}, "flags": M["pfp_flags"],
                       "event_sums_p2": {k: round(v["w1"], 3) for k, v in M["event_sums_p2"].items()}}, indent=1))

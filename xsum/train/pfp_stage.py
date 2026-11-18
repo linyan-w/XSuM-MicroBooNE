@@ -12,7 +12,7 @@ from sklearn.metrics import roc_auc_score
 from torch.utils.data import DataLoader
 
 from ..data.dataset import EventDataset, PFP_FIELDS
-from ..data.pfp_tf import PfpTransform, PFP_MODEL_NAMES, PFP_DIM
+from ..data.pfp_tf import PfpTransform, PFP_MODEL_NAMES, PFP_DIM, CONT_COLS
 from ..data.torch_data import BucketBatchSampler, TorchEvents, collate
 from ..data.transform import EventTransform
 from ..eval.metrics import sample_vs_real_1d, confusion
@@ -106,6 +106,8 @@ def evaluate(model, tf, ptf, ds, idx_test, ld_test, out_dir, device="cuda", n_st
     M["pfp_model_space"] = {n: sample_vs_real_1d(xr[:, j], xf[:, j]) for j, n in enumerate(PFP_MODEL_NAMES)}
     M["pfp_raw"] = {n: sample_vs_real_1d(pr[:, j], pf[:, j]) for j, n in enumerate(PFP_FIELDS)}
     M["pfp_flags"] = {f"has_p{p}": {"real": float((pr[:, 4 + 4 * p] > 0).mean()), "sampled": float((pf[:, 4 + 4 * p] > 0).mean())} for p in range(3)}
+    M["pfp_flags"]["score_is1"] = {"real": float((pr[:, 0] >= 1 - 1e-6).mean()), "sampled": float((pf[:, 0] >= 1 - 1e-6).mean())}
+    M["pfp_flags"]["score_is0"] = {"real": float((pr[:, 0] <= 1e-6).mean()), "sampled": float((pf[:, 0] <= 1e-6).mean())}
     # per-event sums over the PFParticles: total hits and charge on the collection plane, and the leading PFParticle's charge
     def per_event(P, mask):
         n_ev = len(mask); seg = np.repeat(np.arange(n_ev), mask.sum(1))
@@ -114,15 +116,23 @@ def evaluate(model, tf, ptf, ds, idx_test, ld_test, out_dir, device="cuda", n_st
         return np.stack([tot_n, tot_q, lead], 1)
     er = per_event(pr, ds.pfp_mask[idx_test][has]); ef = per_event(pf, S["pmask"][sl])
     M["event_sums_p2"] = {n: sample_vs_real_1d(np.log1p(er[:, j]), np.log1p(ef[:, j])) for j, n in enumerate(["log_nhits", "log_charge", "log_lead_charge"])}
-    # classifier on flat PFParticle rows (model space), split by row
+    # classifier on flat PFParticle rows, split by row: on the decoded records as an analysis sees them (log of the
+    # counts and charges, zeros where a plane has no hits) and on the continuous model-space columns
+    def _dec(P):
+        # one dtype for both sides: the integer columns' logs differ in the low bits between float32 and float64,
+        # which a tree classifier separates perfectly
+        D = P.astype(np.float32).copy(); D[:, 4:] = np.log1p(np.clip(D[:, 4:], 0, None)); return D
+    Dr, Df = _dec(pr), _dec(pf)
     n = min(len(xr), len(xf)); ir, if_ = rng.permutation(len(xr))[:n], rng.permutation(len(xf))[:n]
-    Xc = np.concatenate([xr[ir], xf[if_]]); yc = np.concatenate([np.ones(n), np.zeros(n)]); half = n // 2
+    yc = np.concatenate([np.ones(n), np.zeros(n)]); half = n // 2
     tr = np.r_[np.arange(half), n + np.arange(half)]; ts = np.r_[np.arange(half, n), n + np.arange(half, n)]
-    def _auc(cols):
+    def _auc(Xc, cols):
         c = HistGradientBoostingClassifier(max_iter=200, learning_rate=0.1, early_stopping=True, random_state=seed)
         c.fit(Xc[tr][:, cols], yc[tr]); return float(roc_auc_score(yc[ts], c.predict_proba(Xc[ts][:, cols])[:, 1]))
-    M["classifier_auc_pfp"] = _auc(list(range(PFP_DIM)))
-    M["classifier_auc_by_variable"] = {k: _auc([j]) for j, k in enumerate(PFP_MODEL_NAMES)}
+    Xd = np.concatenate([Dr[ir], Df[if_]]); Xm = np.concatenate([xr[ir], xf[if_]])
+    M["classifier_auc_pfp"] = _auc(Xd, list(range(Dr.shape[1])))
+    M["classifier_auc_pfp_model_continuous"] = _auc(Xm, CONT_COLS)
+    M["classifier_auc_by_variable"] = {k: _auc(Xd, [j]) for j, k in enumerate(PFP_FIELDS)}
     M["corr_real"] = np.corrcoef(xr.T).round(3).tolist(); M["corr_fake"] = np.corrcoef(xf.T).round(3).tolist()
     (out / "metrics_pfp.json").write_text(json.dumps(M, indent=1, default=float))
     _figures(M, xr, xf, out / "figures")
@@ -132,11 +142,12 @@ def evaluate(model, tf, ptf, ds, idx_test, ld_test, out_dir, device="cuda", n_st
 def _figures(M, xr, xf, fdir):
     import matplotlib; matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    fig, axs = plt.subplots(4, 5, figsize=(17, 11))
+    fig, axs = plt.subplots(5, 5, figsize=(17, 13))
     for j, (ax, nm) in enumerate(zip(axs.flat, PFP_MODEL_NAMES)):
         bins = np.linspace(-6, 6, 70)
         ax.hist(xr[:, j], bins, histtype="step", color="k", label="open sample", density=True)
         ax.hist(xf[:, j], bins, histtype="step", color="C1", label="surrogate", density=True)
         ax.set_title(f"{nm}  W1 {M['pfp_model_space'][nm]['w1']:.3f}", fontsize=9); ax.set_yscale("log")
-    axs.flat[0].legend(frameon=False, fontsize=8); axs.flat[-1].axis("off")
+    axs.flat[0].legend(frameon=False, fontsize=8)
+    for ax in axs.flat[len(PFP_MODEL_NAMES):]: ax.axis("off")
     fig.tight_layout(); fig.savefig(fdir / "pfp_marginals.png", dpi=120); plt.close(fig)
