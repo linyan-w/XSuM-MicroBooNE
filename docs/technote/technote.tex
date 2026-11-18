@@ -390,7 +390,10 @@ closure classifier AUC & decoded records 0.85 & single columns at most 0.57 & pe
 \begin{figure}[htbp]\centering
 \includegraphics[width=\textwidth]{figures/pfp00_marginals.png}
 \caption{PFParticle stage on file 00, test split: the 21 model columns, flat over PFParticles (open sample black,
-surrogate orange, log scale).}\label{fig:pfp}
+surrogate orange, log scale). \code{has\_p0..2} are the per-plane flags: whether the PFParticle owns at least one hit
+on wire plane 0, 1 (induction) or 2 (collection), dequantised into a band on either side of zero; when a flag is low the
+plane's four columns are noise. \code{score\_is1} and \code{score\_is0} flag a track/shower score of exactly 1 or 0,
+with the logit noise-filled under them.}\label{fig:pfp}
 \end{figure}
 
 What this says. Every marginal is reproduced to a few percent, the flag rates to a percent, the per-event sums of
@@ -405,7 +408,9 @@ sides. Fine-tuning every parameter, as the MINERvA prong stage does, overfits th
 head from 0.37 to 1.6) while the set flow barely improves. Freezing the event stage and training the set flow alone
 for 120 epochs is what the table shows (set-flow validation loss 1.13 against 1.35). File 00 (34\,k training events,
 38\,k PFParticles) is the data limit of the PFParticle level; the XSuM-MINERvA prong stage had 15.8\,M events, and
-more files are the lever.
+more files are the lever. The two trainings were repeated after the neutral-pion direction fix of
+Section~\ref{sec:content} (\code{scripts/train/train\_all.sh}: the event stage, then the set flow with the event
+stage frozen); every number of Tables~\ref{tab:first} and~\ref{tab:pfp} is reproduced within 0.01.
 
 \paragraph{Where we are.} Reading the schematic from the top left:
 \begin{description}[nosep, leftmargin=28mm, style=sameline]
